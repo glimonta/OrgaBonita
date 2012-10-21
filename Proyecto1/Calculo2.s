@@ -9,10 +9,11 @@
 # $t7 posicion de entrada (y)
 # $t8 posicion de "guar" (x)
 # $t9 maxItera
-# $s0 numIntentos
+# $s1 numIntentos
+# $s3 puntaje
 #
 	
-maxIntentos:	.asciiz "5"
+maxIntentos:	.word 5
 guar:		.asciiz "1476"
 numCod:		.space 5
 
@@ -38,7 +39,7 @@ Nombre:		.space 8
 main:
 #######################################
 		lb $t9, maxIntentos
-		li $s1, 0x31 # Como es un contador, por comodidad se carga el 0 en ASCII
+		li $s1, 1 # Como es un contador, por comodidad se carga el 0 en ASCII
 
 # Pregunta y carga el nombre del jugador 
 		la $a0, PreguntaNombre
@@ -49,6 +50,8 @@ main:
 		la $a0, Nombre
  		li $a1, 8
 		syscall
+
+		li $s3, 0x30
 
 # Aqui es donde la magia comienza
 bigCiclo:
@@ -61,7 +64,7 @@ bigCiclo:
 		syscall
 
 		move $a0, $s1
-		li $v0, 11
+		li $v0, 1
 		syscall
 
 		la $a0, ln
@@ -176,18 +179,18 @@ else:		addi $t8, $t8, 1
 		b finCiclo
 	
 finCiclo:	blt $t7, 4, ciclo
-
+	
 		la $a0, ln
 		li $v0, 4
 		syscall
 
-		beq $t3, 4, fin
+		beq $t3, 4, preg
 
 		addi $s1, $s1, 1
 
 		li $t3, 0
 
-		bgt $s1, $t9, fin
+		bgt $s1, $t9, preg
 
 ###############################################
 # limpia el leIn
@@ -216,9 +219,24 @@ clean:		sb $zero, 0($t5)
 ##########################################
 #
 # ESTE ESTA COMPLETAMENTE ENTENDIBLE NO ME #!(^$%!#$
-#
+# ESTO FUE LO QUE CAMBIASTE PARA LO DEL PUNTAJE
 	
-preg:		la $a0, PreguntaFinal
+preg:		bne $t3, 4, noAdivino
+
+		beq $s1, $t9, enLaUltima
+		add $s3, $s3, 2
+		b noAdivino
+enLaUltima:	add $s3, $s3, 1
+
+noAdivino:	la $a0, Nombre
+		li $v0, 4
+		syscall
+	
+		move $a0, $s3
+		li $v0, 11
+		syscall
+
+		la $a0, PreguntaFinal
 		li $v0, 4
 		syscall
 
@@ -231,7 +249,8 @@ preg:		la $a0, PreguntaFinal
 		li $v0, 4
 		syscall
 
-		li $s1, 0x31
+		li $s1, 1
+		li $t3, 0
 
 		beq $t8, 0x59, bigCiclo
 		beq $t8, 0x79, bigCiclo
