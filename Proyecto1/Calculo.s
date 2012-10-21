@@ -53,9 +53,6 @@ ciclo:		lb $t4, 0($t5)
 
 		lb $t6, 0($t2)
 	
-
-
-	
 		beq $t4, $t6, AeqB
 		b else
 	
@@ -121,6 +118,9 @@ finCiclo:	blt $t7, 4, ciclo
 fin:		la $a0, ln
 		li $v0, 4
 		syscall
+
+		
+		
 		la $a0, guar
 		li $v0, 4
 		syscall
