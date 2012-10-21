@@ -38,11 +38,24 @@ Nombre:		.space 8
 main:
 #######################################
 		lb $t9, maxIntentos
-		li $s1, 0x30
+		li $s1, 0x31 # Como es un contador, por comodidad se carga el 0 en ASCII
 
+# Pregunta y carga el nombre del jugador 
+		la $a0, PreguntaNombre
+		li $v0, 4
+		syscall		
+
+		li $v0, 8
+		la $a0, Nombre
+ 		li $a1, 8
+		syscall
+
+# Aqui es donde la magia comienza
 bigCiclo:
-########################################
+######################################## (<= Se~al de que la magia comienza)
 
+# Se imprime que por que intento va
+	
 		la $a0, salida1
 		li $v0, 4
 		syscall
@@ -55,23 +68,29 @@ bigCiclo:
 		li $v0, 4
 		syscall
 
-
-#		li $v0, 8
-#		la $a0, numCod
-# 		li $a1, 5
-#		syscall
-#		move $t2, $a0
-
 		la $t2, leIn
 		li $t8, 0
 	
+###############################################################
+# Lee el intento del usuario, revisando cada char (se guarda en leIn)
+# 
+# Aqui se usan los registros distintos de como sale arriba
+# Because fuck you
+#
+# Creo que:
+#
+# $t2 es el registro hacia leIn
+# $t5 se usa como intermediario para guardar las cosas
+# $t8 es un contador
+#
+
 leerC:		li $v0, 12
 		syscall
 
-		beq $v0, 0x51, preg
-		beq $v0, 0x71, preg
-		beq $v0, 0x45, HS
-		beq $v0, 0x65, HS
+		beq $v0, 0x51, preg # 0x51 = Q si es Q se sale del juego
+		beq $v0, 0x71, preg # 0x71 = q
+		beq $v0, 0x45, HS # 0x45 = E si es E muestra Highscore
+		beq $v0, 0x65, HS # 0x65 = e
 	
 		move $t5, $v0
 		sb $t5, 0($t2)
@@ -79,33 +98,45 @@ leerC:		li $v0, 12
 		addi $t2, $t2, 1
 		addi $t8, $t8, 1
 	
-		bne $t8, 4, leerC
+		bne $t8, 4, leerC # cuando revisa 4 char se sale se sale
 
 		move $a0, $t2
 		li $v0, 4
 		syscall
 
 		la $t2, leIn
-		
-########################################
+# Usted esta dejando el vacio legal donde se siguen usando
+# los registros de arriba, vaya con dios
+###########################################################
 
-		la $t5, guar
+		la $t5, guar # se carga el codigo que tienen que adivinar
 
-		li $t7, 0
+# se inicializan contadores
+	
+		li $t7, 0 
 		li $t8, 0
 
-		la $a0, ln
+		la $a0, ln #<= NEW LINE
 		li $v0, 4
 		syscall
-	
+#
+# Como no estoy seguro de que hice hago una introduccion:
+#
+# El "ciclo" recorre lo que introdujo el usuario y va comparando
+# con los caracteres del codigo, si consigue que son iguales,
+# compara los indices respectivos (que representan la posicion en el codigo)
+# si son iguales escribe "N", diferentes "B", si no consigue el numero
+# imprime "X"
+#
+
 ciclo:		lb $t4, 0($t5)		
 
 		lb $t6, 0($t2)
 	
-		beq $t4, $t6, AeqB
+		beq $t4, $t6, AeqB # primer "IF" si son iguales
 		b else
 	
-AeqB:		beq $t7, $t8, XeqY
+AeqB:		beq $t7, $t8, XeqY # segundo "IF" si los indices son iguales
 		la $a0, blanco
 		b cAeqB
 	
@@ -117,29 +148,23 @@ cAeqB:		lb $t4, 0($t5)
 		li $v0, 4
 		syscall
 	
-		addi $t7, $t7, 1
-#		lb $t6, 2($t2)
-
+		addi $t7, $t7, 1 
 		addu $t2, $t2, 1
 
-		la $t5, guar
+		la $t5, guar 
 	
 		b finCiclo
 
 else:		addi $t8, $t8, 1
-#		lb $t4, 2($t5)
-
 		addu $t5, $t5, 1
 
-		bne $t8, 4, finCiclo
+		bne $t8, 4, finCiclo # si ya revise los 4 numeros me voy
 
 		la $a0, ninguno
 		li $v0, 4
 		syscall
 
 		addi $t7, $t7, 1
-#		lb $t6, 2($t2)
-
 		addu $t2, $t2, 1
 
 		lb $t4, 0($t5)
@@ -157,22 +182,30 @@ finCiclo:	blt $t7, 4, ciclo
 		syscall
 
 		beq $t3, 4, fin
-########################################
+
 		addi $s1, $s1, 1
 
 		li $t3, 0
-#######################################	
+
 		bgt $s1, $t9, fin
 
-######################################
+###############################################
+# limpia el leIn
+#
+# El mismo peo con los registros
+# No me juzgues
+#
+# $t5 es el que esta con leIn
+# $t8 contador
+#
 		li $t8, 0
-		li $t7, 0
 		la $t5, leIn
 
 clean:		sb $zero, 0($t5)
 		addi $t5, $t5, 1
 		addi $t8, $t8, 1
-		bne $t8, 4, clean
+		bne $t8, 4, clean # mientras no recorra todo leIn no se va
+#
 ######################################
 
 		b bigCiclo
@@ -180,7 +213,11 @@ clean:		sb $zero, 0($t5)
 		la $a0, ln
 		li $v0, 4
 		syscall
-
+##########################################
+#
+# ESTE ESTA COMPLETAMENTE ENTENDIBLE NO ME #!(^$%!#$
+#
+	
 preg:		la $a0, PreguntaFinal
 		li $v0, 4
 		syscall
@@ -194,6 +231,8 @@ preg:		la $a0, PreguntaFinal
 		li $v0, 4
 		syscall
 
+		li $s1, 0x31
+
 		beq $t8, 0x59, bigCiclo
 		beq $t8, 0x79, bigCiclo
 
@@ -201,12 +240,18 @@ preg:		la $a0, PreguntaFinal
 		beq $t8, 0x6e, fin
 		b preg
 	
+##################################################
+	
 fin:		la $a0, guar
 		li $v0, 4
 		syscall
 		li $v0, 10
 		syscall
-
+	
+##############################################
+#
+# una de las cosas que falta xD
+#
 HS:		la $a0, HighScore
 		li $v0, 4
 		syscall
