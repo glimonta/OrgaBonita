@@ -18,7 +18,7 @@
 # t5: direccion de la memoria asignada por el sistema para los codigos
 # t6: temporal para movernos por los codigos
 # t7: maximo de intentos
-# t8: contador que por comodidad se carga en ASCII
+# t8: contador del numero de intento actual
 # t9: contador para los caracteres que ingresa el jugador, se usa como 
 #     contador de la posicion de la entrada tambien
 # s0: almacena la direccion de leIn (la entrada)
@@ -28,12 +28,16 @@
 # s4: lo utilizamos para movernos por el contenido del codigo introducido
 #     por el jugador
 # s5: cantidad de aciertos que tiene el jugador
+# s6: almacena el numero de partida
+# s7: almacena la direccion del codigo actual
 
 .data
 
+		.align  4
+partida:	.word	0
 nomArch:	.asciiz "aci.txt"
 espacio: 	.asciiz " "
-error:		.asciiz "\n EROOR: No se ha leido un numero :("
+error:		.asciiz "\n ERROR: No se ha leido un numero :("
 finDeArch:	.asciiz "\n Archivo cargado con exito! :D \n"
 HighScore:	.asciiz "\n Deberia imprimir los tres mejores, \n pero no lo hago porque soy idiota :(\n"
 salida1: 	.asciiz "Intento #"
@@ -48,8 +52,9 @@ numInt:	 	.space 8
 numCod: 	.space 8
 leIn:		.space 5
 nombre:		.space 8
+codAct:		.space 4
 
-		.align 2
+		.align 4
 
 .text
 
@@ -154,7 +159,7 @@ checkCod2:	la $t3, numCod		#cargamos la direccion de numInt
 		li $t1, 0		#reiniciamos el contador
 
 pedirEspacio: 	lb $t4, numCod		#cargamos el numCod en t4
-		mul $t4, $t4, 5		#multiplicamos por 4 (esto se puede hacer distintos con sll)
+		sll $t4, $t4, 2		#multiplicamos por 4 
 		
 		move $a0, $t4		#movemos a a0 cuanto espacio queremos del sistema
 		li $v0, 9		#pedimos el espacio
@@ -177,9 +182,10 @@ leer3: 	move $a0, $t0		#muevo file descriptor a a0
 	syscall 		#codigo final del proyecto
 
 	lb $t4, 0($a0)		#cargo en t4 lo que hay en el buf
-	sb $t4, 0($t6)		#almaceno en t6 (memoria donde estan los codigos)
 
-	beq $t4, 0xa, leer4	#si es un salto de linea va a leer4
+	beq $t4, 0xa, leer3	#si es un salto de linea va a leer4
+
+	sb $t4, 0($t6)		#almaceno en t6 (memoria donde estan los codigos)
 
 	blt $t4, 0x30, ErrorLectura
 	bgt $t4, 0x39, ErrorLectura
@@ -188,8 +194,8 @@ leer3: 	move $a0, $t0		#muevo file descriptor a a0
 	
 	b leer3			#saltamos a leer3 (ciclo)
 
-leer4:	addi $t6, $t6, 1 	#cuando es salto de linea agregamos 1 a t6 
-	b leer3			#y regresamos a leer3
+leer4:	#addi $t6, $t6, 1 	#cuando es salto de linea agregamos 1 a t6 
+	#b leer3			#y regresamos a leer3
 
 ErrorLectura: 	la $a0, error	#imprimimos mensaje de error
 		li $v0, 4
@@ -203,9 +209,6 @@ finLec:	la $a0,finDeArch	#imprimo mensaje de que lei el archivo
 	li $v0, 16
 	syscall
 
-	#li $v0, 10		#terminamos el programa, for now.
-	#syscall	
-
 ######################################################
 
 ######################################################
@@ -215,7 +218,7 @@ finLec:	la $a0,finDeArch	#imprimo mensaje de que lei el archivo
 ######################################################
 
 inic:	lb $t7, numInt	#cargamos el max de intentos en t7
-	li $t8, 1	#contador que inicializamos en 1
+	li $t8, 1	#contador del numero de intentos
 	
 	la $a0, preguntaNombre	#preguntamos el nombre del jugador
 	li $v0, 4
@@ -227,6 +230,7 @@ inic:	lb $t7, numInt	#cargamos el max de intentos en t7
 	syscall
 
 	move $t6, $t5 		#asigno a t6 la direccion que esta en t5 (codigos)
+	la $s7, codAct
 
 bigCiclo:	la $a0, salida1	#imprimimos que intento es
 		li $v0, 4
@@ -277,6 +281,27 @@ leerC:	li $v0, 12 		#leemos caracter
 	li $v0, 4
 	syscall
 
+buscarCod:	lw $s6, partida
+		la $s7, codAct
+		sll $s6, $s6, 2
+		move $t6, $t5
+		add $t6, $t6, $s6
+
+#aqui usamos s3 como temporal para pasar el codigo y s2 como contador
+
+obtenerCod:	lb $s3, 0($t6)
+		sb $s3, 0($s7)
+		addu $s7, $s7, 1
+		addu $t6, $t6, 1
+		addi $s2, $s2, 1
+		blt $s2, 4, obtenerCod
+
+intermed:	la $t6, codAct
+		li $s2, 0
+
+		move $a0, $t6
+		li $v0, 4
+		syscall
 
 ######################################################
 #                                                    #
@@ -343,7 +368,7 @@ finCiclo:	blt $s2, 4, ciclo
 		li $v0, 4
 		syscall
 	
-		beq $s5, 4, fin
+		beq $s5, 4, reinic
 		
 		addi $t8, $t8, 1
 
@@ -363,10 +388,6 @@ clean:	sb $zero, 0($s0)
 	bne $s2, 4, clean	#sale cuando haya limpiado todo leIn
 
 	b bigCiclo
-	
-	la $a0, linea
-	li $v0, 4
-	syscall
 
 preg:	la $a0, preguntaFinal
 	li $v0, 4
@@ -389,7 +410,16 @@ preg:	la $a0, preguntaFinal
 
 	b preg
 
-fin:	move $a0, $t5
+
+reinic:	lw $s6, partida		#cargamos a s6 el numero de partida
+	addi $s6, $s6, 1	#le sumamos uno
+	sw $s6, partida		#guardamos en memoria
+
+	la $s7, codAct		#cargamos en s7 la direccion a codAct
+	li $t8, 1
+	b preg
+
+fin:	la $a0, codAct
 	li $v0, 4
 	syscall
 
