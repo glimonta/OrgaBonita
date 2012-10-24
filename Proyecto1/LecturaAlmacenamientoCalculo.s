@@ -216,11 +216,7 @@ finLec:	la $a0,finDeArch	#imprimo mensaje de que lei el archivo
 ######################################################
 
 inic:	lb $t7, numInt	#cargamos el max de intentos en t7
-<<<<<<< Updated upstream
 	li $t8, 1	#contador que inicializamos en 1
-=======
-	li $t8, 1	#cargamos el 1 en ASCII por comodidad (contador)
->>>>>>> Stashed changes
 	
 	la $a0, preguntaNombre	#preguntamos el nombre del jugador
 	li $v0, 4
@@ -239,11 +235,9 @@ bigCiclo:	la $a0, salida1	#imprimimos que intento es
 		syscall
 		
 		move $a0, $t8	#movemos el numero de intento a a0
-<<<<<<< Updated upstream
+
 		li $v0, 1	#imprimir entero
-=======
-		li $v0, 1
->>>>>>> Stashed changes
+
 		syscall
 
 		la $a0, linea
@@ -309,13 +303,12 @@ ciclo:	lb $s3, 0($t6)	#cargamos el elemento actual del codigo actual
 	b else
 
 AeqB:	beq $s2, $t9, XeqY	#segundo condicional si los indices son iguales
-<<<<<<< Updated upstream
 	
 	la $a0, blanco	
 
-=======
 	la $a0, blanco		#imprimo blanco
->>>>>>> Stashed changes
+
+
 	b cAeqB
 
 XeqY:	la $a0, negro		#imprimo negro

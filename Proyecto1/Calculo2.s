@@ -12,6 +12,7 @@
 # $s1 numIntentos
 # $s3 puntaje
 # $s5 archivo escribir
+
 # $s6 dummy
 # $s7
 #
@@ -324,6 +325,30 @@ sali:	la $a1, Nombre
 	
 	li $v0, 10
 	syscall
+
+abrirEsc:	la $a0, arch #open nombre del archivo
+		li $a1, 0x102 # 0x109 = 0x100 Create + 0x8 Append + 0x1 Write
+		li $a2, 0x1FF # Mode 0x1FF = 777 rwx rwx rwx
+
+		li $v0, 13
+		syscall
+
+		move $s5, $v0
+		bgt  $v0, $zero, aescribir  
+
+		la	$a0, arch1    ## open nombre del archivo
+		li	$a1, 0x41C2   ##  41C2 Permite la cracion del archivo 
+		li	$a2, 0x1FF    ##  Mode 0x1FF = 777 rwx rwx rwx
+
+		li $v0, 13			# open syscall
+		syscall
+
+		move	$a0, $v0
+		li $v0, 16			# close
+		syscall
+
+        	b aabrir
+
 	
 ##############################################
 #
@@ -338,3 +363,4 @@ HS:		la $a0, HighScore
 		li $v0, 4
 		syscall
 finHS:		b leerC
+
