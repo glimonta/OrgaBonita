@@ -298,10 +298,8 @@ obtenerCod:	lb $s3, 0($t6)
 
 intermed:	la $t6, codAct
 		li $s2, 0
-
-		move $a0, $t6
-		li $v0, 4
-		syscall
+	
+		move $s5, $zero
 
 ######################################################
 #                                                    #
@@ -341,7 +339,7 @@ cAeqB:	lb $s3, 0($t6)		# que carrizo hace esto?
 	addi $s2, $s2, 1	#aumento el contador de la pos del cod de entrada
 	addu $s0, $s0, 1	#me muevo 1byte en el codigo de entrada
 
-	move $t6, $t5
+	la $t6, codAct		#cargo la direccion del codigo actual a t6
 
 	b finCiclo
 
@@ -360,7 +358,7 @@ else: 	addi $t9, $t9, 1	#aumento el contador de la posicion del codigo actual
 	lb $s3, 0($t6)		#cargo el codigo actual en s3
 	li $t9, 0
 	
-	move $t6, $t5
+	la $t6, codAct
 
 finCiclo:	blt $s2, 4, ciclo
 	
@@ -411,8 +409,13 @@ preg:	la $a0, preguntaFinal
 	b preg
 
 
+#usamos s2 como temporal y luego reiniciamos su valor
 reinic:	lw $s6, partida		#cargamos a s6 el numero de partida
 	addi $s6, $s6, 1	#le sumamos uno
+
+	lb $s2, numCod
+	beq $s6, $s2, fin
+
 	sw $s6, partida		#guardamos en memoria
 
 	la $s7, codAct		#cargamos en s7 la direccion a codAct
