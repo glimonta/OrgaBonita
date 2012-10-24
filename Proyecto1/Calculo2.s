@@ -12,6 +12,8 @@
 # $s1 numIntentos
 # $s3 puntaje
 # $s5 archivo escribir
+# $s6 dummy
+# $s7
 #
 	
 maxIntentos:	.word 5
@@ -273,13 +275,13 @@ abrirEsc:	la $a0, arch #open nombre del archivo
 		li $a1, 0x102 # 0x109 = 0x100 Create + 0x8 Append + 0x1 Write
 		li $a2, 0x1FF # Mode 0x1FF = 777 rwx rwx rwx
 
-		li $v0, 13
+		li $v0, 13 #open
 		syscall
 
 		move $s5, $v0
-		bgt  $v0, $zero, escribir  
+		bgt  $v0, $zero, escribir  # si lo consigui escribir
 
-		la	$a0, arch1    ## open nombre del archivo
+		la	$a0, arch    ## open nombre del archivo
 		li	$a1, 0x41C2   ##  41C2 Permite la cracion del archivo 
 		li	$a2, 0x1FF    ##  Mode 0x1FF = 777 rwx rwx rwx
 
@@ -292,16 +294,12 @@ abrirEsc:	la $a0, arch #open nombre del archivo
 
         	b abrirEsc
 
-escribir:	li $v0, 8
-		la $a0, Nombre
- 		li $a1, 8
-		syscall
-
+escribir:	la $s6, dummy
 
 		move	$t1, $v0
-		move	$a0, $s5
+		move	$a0, $s5 #le pasas el nombre del archivo
 
-		sb $s3, 0($t2)
+		sb $s3, 0($s6)
 	
 		la $a1, dummy
 		li $a2, 2        # Max nummero de bytes a escribir
@@ -311,20 +309,21 @@ escribir:	li $v0, 8
 		move	$a0, $s5
 		la $t8, Nombre
 
-contar:	lb $t4, 0($t8)
-	beq $t4, 0xa, sali
-	beq $t4, $zero sali
-	addi $t9, $t9, 1
+
+contar:	lb $t4, 0($t8) 
+	beq $t4, 0xa, sali # me calcula el espacio exacto de la palabra
+	beq $t4, $zero sali # para no usar espacio de mas y que escriba bien
+	addi $s7, $s7, 1
 	addi $t8, $t8, 1
 	b contar
 
 sali:	la $a1, Nombre
-	move $a2, $t9        # Max nummero de bytes a escribir
+	move $a2, $s7        # Max nummero de bytes a escribir
  	li $v0, 15			# write
  	syscall
-
+	
 	li $v0, 10
-		syscall
+	syscall
 	
 ##############################################
 #
@@ -339,8 +338,3 @@ HS:		la $a0, HighScore
 		li $v0, 4
 		syscall
 finHS:		b leerC
-
-###########################################################################
-#
-###########################################################################
-	
