@@ -296,7 +296,7 @@ abrirEsc:	la $a0, arch #open nombre del archivo
 
 escribir:	la $s6, dummy
 
-		move	$t1, $v0
+#		move	$t1, $v0
 		move	$a0, $s5 #le pasas el nombre del archivo
 
 		sb $s3, 0($s6)

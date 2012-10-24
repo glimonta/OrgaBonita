@@ -11,12 +11,12 @@
 # Planificacion de registros:
 #
 # t0: file descriptor
-# t1: contador para los digitos de numCod y numInt
+# t1: contador para los digitos de numCod y numInt // puntaje
 # t2: direccion de numInt
 # t3: direccion de numCod
 # t4: byte actual que leemos
 # t5: direccion de la memoria asignada por el sistema para los codigos
-# t6: temporal para movernos por los codigos
+# t6: temporal para movernos por los codigos // dummy de escritura
 # t7: maximo de intentos
 # t8: contador del numero de intento actual
 # t9: contador para los caracteres que ingresa el jugador, se usa como 
@@ -29,13 +29,14 @@
 #     por el jugador
 # s5: cantidad de aciertos que tiene el jugador
 # s6: almacena el numero de partida
-# s7: almacena la direccion del codigo actual
-
+# s7: almacena la direccion del codigo actual // contador de espacio
+# s8: file descriptor (write)
 .data
 
 		.align  4
 partida:	.word	0
 nomArch:	.asciiz "aci.txt"
+archScore:	.asciiz "score.txt"
 espacio: 	.asciiz " "
 error:		.asciiz "\n ERROR: No se ha leido un numero :("
 finDeArch:	.asciiz "\n Archivo cargado con exito! :D \n"
@@ -45,14 +46,15 @@ linea:		.asciiz "\n"
 blanco:		.asciiz "B "
 negro:		.asciiz "N "
 ninguno: 	.asciiz "X "
-preguntaFinal:	.asciiz "\n¿Quieres jugar otra vez? :D (y/n)\n"
-preguntaNombre: .asciiz "¿Como te llamas? \n"
+preguntaFinal:	.asciiz "\nQuieres jugar otra vez? :D (y/n)\n"
+preguntaNombre: .asciiz "Como te llamas? \n"
 buf:	 	.space 32
 numInt:	 	.space 8
 numCod: 	.space 8
 leIn:		.space 5
 nombre:		.space 8
 codAct:		.space 4
+dummy:		.asciiz "  "
 
 		.align 4
 
@@ -229,6 +231,19 @@ inic:	lb $t7, numInt	#cargamos el max de intentos en t7
 	li $a1, 8
 	syscall
 
+	la $a0, nombre
+	li $v0, 4
+	syscall
+
+	li $t1, 0x30
+	move $a0, $t1
+	li $v0, 11
+	syscall
+
+	la $a0, linea
+	li $v0, 4
+	syscall
+
 	move $t6, $t5 		#asigno a t6 la direccion que esta en t5 (codigos)
 	la $s7, codAct
 
@@ -387,7 +402,22 @@ clean:	sb $zero, 0($s0)
 
 	b bigCiclo
 
-preg:	la $a0, preguntaFinal
+preg:	bne $s5, 4, noAdivino
+
+		beq $t8, $t7, enLaUltima
+		add $t1, $t1, 2
+		b noAdivino
+enLaUltima:	add $t1, $t1, 1
+
+noAdivino:	la $a0, nombre
+		li $v0, 4
+		syscall
+	
+		move $a0, $t1
+		li $v0, 11
+		syscall
+
+pregun:	la $a0, preguntaFinal
 	li $v0, 4
 	syscall
 
@@ -406,7 +436,7 @@ preg:	la $a0, preguntaFinal
 	beq $s1, 0x4e, fin
 	beq $s1, 0x6e, fin
 
-	b preg
+	b pregun
 
 
 #usamos s2 como temporal y luego reiniciamos su valor
@@ -422,10 +452,61 @@ reinic:	lw $s6, partida		#cargamos a s6 el numero de partida
 	li $t8, 1
 	b preg
 
-fin:	la $a0, codAct
-	li $v0, 4
-	syscall
+fin:
+abrirEsc:	la $a0, archScore #open nombre del archivo
+		li $a1, 0x102 # 0x109 = 0x100 Create + 0x8 Append + 0x1 Write
+		li $a2, 0x1FF # Mode 0x1FF = 777 rwx rwx rwx
 
+		li $v0, 13 #open
+		syscall
+
+		move $t0, $v0
+		bgt  $v0, $zero, escribir  # si lo consigui escribir
+
+		la	$a0, archScore    ## open nombre del archivo
+		li	$a1, 0x41C2   ##  41C2 Permite la cracion del archivo 
+		li	$a2, 0x1FF    ##  Mode 0x1FF = 777 rwx rwx rwx
+
+		li $v0, 13			# open syscall
+		syscall
+
+		move	$a0, $v0
+		li $v0, 16			# close
+		syscall
+
+        	b abrirEsc
+#########################################################################
+escribir:	la $s6, dummy
+
+		move	$a0, $t0 #le pasas el nombre del archivo
+
+		sb $t1, 0($s6)
+	
+		la $a1, dummy
+		li $a2, 2        # Max nummero de bytes a escribir
+ 		li $v0, 15			# write
+ 		syscall
+
+		move	$a0, $t0
+		la $t8, nombre
+
+	move $s7, $zero
+
+
+contar:	lb $t4, 0($t8)
+	beq $t4, 0xa, sali # me calcula el espacio exacto de la palabra
+	beq $t4, $zero sali # para no usar espacio de mas y que escriba bien
+	addi $s7, $s7, 1
+	addi $t8, $t8, 1
+	b contar
+
+sali:	
+	
+	la $a1, nombre
+	move $a2, $s7        # Max nummero de bytes a escribir
+ 	li $v0, 15			# write
+ 	syscall
+	
 	li $v0, 10
 	syscall
 
