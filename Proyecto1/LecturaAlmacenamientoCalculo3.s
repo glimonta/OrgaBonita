@@ -444,6 +444,8 @@ noAdivino:	la $a0, nombre
 		li $v0, 11
 		syscall
 
+		beq $s6, $s2, fin
+	
 pregun:	la $a0, preguntaFinal
 	li $v0, 4
 	syscall
@@ -471,7 +473,7 @@ reinic:	lw $s6, partida		#cargamos a s6 el numero de partida
 	addi $s6, $s6, 1	#le sumamos uno
 
 	lb $s2, numCod
-	beq $s6, $s2, fin
+	beq $s6, $s2, preg
 
 	sw $s6, partida		#guardamos en memoria
 
