@@ -42,7 +42,7 @@ error:		.asciiz "\n ERROR: No se ha leido un numero :("
 finDeArch:	.asciiz "\n Archivo cargado con exito! :D \n"
 HighScore:	.asciiz "\n Deberia imprimir los tres mejores, \n pero no lo hago porque soy idiota :(\n"
 salida1: 	.asciiz "Intento #"
-linea:		.asciiz "\n"
+linea:		.asciiz " \n"
 blanco:		.asciiz "B "
 negro:		.asciiz "N "
 ninguno: 	.asciiz "X "
@@ -55,6 +55,7 @@ leIn:		.space 5
 nombre:		.space 8
 codAct:		.space 4
 dummy:		.asciiz "  "
+array:		.space 30
 
 		.align 4
 
@@ -211,8 +212,34 @@ finLec:	la $a0,finDeArch	#imprimo mensaje de que lei el archivo
 	li $v0, 16
 	syscall
 
-######################################################
+#####################################################
+#						    #
+#  Se carga el highscore			    #
+#						    #
+#                                                   #
+#####################################################
 
+	la $a0, archScore	#guardo el nombre del archivo en a0
+	li $v0, 13		#indico que abrire
+	li $a1, 0x0		#indico que solo será para lectura
+	syscall
+
+	move $t0, $v0		#guardo el file descriptor en t0
+	
+read1:	move $a0, $t0		#muevo file descriptor a a0
+	la $a1, array		#indico la direccion del buffer
+	li $a2, 30		#indico que leere un byte
+	li $v0, 14		#indico que leere
+	syscall
+
+	la $a0, array		#esto es para imprimir lo que lei
+	li $v0, 4		#en el buffer, no es relevante para el
+	syscall 		#codigo final del proyecto
+
+	la $a0, linea
+	li $v0, 4
+	syscall
+	
 ######################################################
 #                                                    #
 # 	    Comienzo del juego y calculo             #
@@ -246,7 +273,7 @@ inic:	lb $t7, numInt	#cargamos el max de intentos en t7
 
 	move $t6, $t5 		#asigno a t6 la direccion que esta en t5 (codigos)
 	la $s7, codAct
-
+	
 bigCiclo:	la $a0, salida1	#imprimimos que intento es
 		li $v0, 4
 		syscall
@@ -417,8 +444,6 @@ noAdivino:	la $a0, nombre
 		li $v0, 11
 		syscall
 
-		beq $s6, $s2, fin
-	
 pregun:	la $a0, preguntaFinal
 	li $v0, 4
 	syscall
@@ -446,14 +471,14 @@ reinic:	lw $s6, partida		#cargamos a s6 el numero de partida
 	addi $s6, $s6, 1	#le sumamos uno
 
 	lb $s2, numCod
-	beq $s6, $s2, preg
+	beq $s6, $s2, fin
 
 	sw $s6, partida		#guardamos en memoria
 
 	la $s7, codAct		#cargamos en s7 la direccion a codAct
 	li $t8, 1
 	b preg
-
+################################################################################
 fin:
 abrirEsc:	la $a0, archScore #open nombre del archivo
 		li $a1, 0x102 # 0x109 = 0x100 Create + 0x8 Append + 0x1 Write
@@ -477,8 +502,9 @@ abrirEsc:	la $a0, archScore #open nombre del archivo
 		syscall
 
         	b abrirEsc
-#########################################################################
-escribir:	la $s6, dummy
+
+escribir:	
+		la $s6, dummy
 
 		move	$a0, $t0 #le pasas el nombre del archivo
 
@@ -508,11 +534,48 @@ sali:
 	move $a2, $s7        # Max nummero de bytes a escribir
  	li $v0, 15			# write
  	syscall
+
+	la $a1, linea
+	li $a2, 2        # Max nummero de bytes a escribir
+ 	li $v0, 15			# write
+ 	syscall
+	
+	la $t8, array
+
+	move $s7, $zero
+
+#contat:	lb $t4, 0($t8)
+#	beq $t4, 0xa, sali2 # me calcula el espacio exacto de la palabra
+#	beq $t4, $zero sali2 # para no usar espacio de mas y que escriba bien
+#	addi $s7, $s7, 1
+#	addi $t8, $t8, 1
+#	b contat
+
+sali2:	
+	la $a1, array
+	li $a2, 10        # Max nummero de bytes a escribir
+ 	li $v0, 15			# write
+ 	syscall
+	
+	addi $t8, $t8, 10
+	
+	move $a1, $t8 
+	li $a2, 10        # Max nummero de bytes a escribir
+ 	li $v0, 15			# write
+ 	syscall
 	
 	li $v0, 10
 	syscall
 
-HS: 	la $a0, HighScore
+HS:	la $a0, linea
+	li $v0, 4
+	syscall
+	
+	la $a0, array
+	li $v0, 4
+	syscall
+
+	la $a0, linea
 	li $v0, 4
 	syscall
 
