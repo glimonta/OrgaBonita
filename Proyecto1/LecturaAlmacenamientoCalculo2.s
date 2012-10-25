@@ -185,7 +185,7 @@ leer3: 	move $a0, $t0		#muevo file descriptor a a0
 
 	lb $t4, 0($a0)		#cargo en t4 lo que hay en el buf
 
-	beq $t4, 0xa, leer3	#si es un salto de linea va a leer4
+	beq $t4, 0xa, leer3	#si es un salto de linea va a leer3
 
 	sb $t4, 0($t6)		#almaceno en t6 (memoria donde estan los codigos)
 
@@ -195,9 +195,6 @@ leer3: 	move $a0, $t0		#muevo file descriptor a a0
 	addi $t6, $t6, 1	#sumamos 1 a la direccion de los codigos
 	
 	b leer3			#saltamos a leer3 (ciclo)
-
-leer4:	#addi $t6, $t6, 1 	#cuando es salto de linea agregamos 1 a t6 
-	#b leer3			#y regresamos a leer3
 
 ErrorLectura: 	la $a0, error	#imprimimos mensaje de error
 		li $v0, 4
@@ -387,7 +384,7 @@ finCiclo:	blt $s2, 4, ciclo
 
 		li $s5, 0
 
-		bgt $t8, $t7, fin
+		bgt $t8, $t7, pregun
 
 # LIMPIAMOS EL LE IN
 
@@ -431,6 +428,17 @@ pregun:	la $a0, preguntaFinal
 	la $a0, linea
 	li $v0, 4
 	syscall
+
+	lw $s6, partida		#cargamos a s6 el numero de partida
+	addi $s6, $s6, 1	#le sumamos uno
+
+	lb $s2, numCod
+	beq $s6, $s2, preg
+
+	sw $s6, partida		#guardamos en memoria
+
+	li $t8, 1
+	la $s7, codAct
 
 	beq $s1, 0x59, bigCiclo
 	beq $s1, 0x79, bigCiclo
