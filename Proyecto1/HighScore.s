@@ -39,15 +39,9 @@ main:   la $a0, nomArch         #abro el archivo solo para lectura
         syscall
         
         move $t0, $v0           #muevo el file descriptor a t0
-
-        la $t1, prim            #cargo prim en t1
-        la $t2, seg             #cargo seg en t2
-        la $t3, ter             #cargo ter en t3
                         
 inter:  la $t1, prim
-        la $t2, seg
-        la $t3, ter
-
+        
 leer1:  move $a0, $t0
         la $a1, buf
         li $a2, 1
@@ -66,6 +60,8 @@ leer1:  move $a0, $t0
         addi $t1, $t1, 1
         
         b leer1
+       
+inter2: la $t1, seg
 
 leer2:  move $a0, $t0
         la $a1, buf
@@ -80,11 +76,13 @@ leer2:  move $a0, $t0
         syscall
 
         lb $t4, 0($a0)
-        sb $t4, 0($t2)
+        sb $t4, 0($t1)
         
-        addi $t2, $t2, 1
+        addi $t1, $t1, 1
         
         b leer2
+        
+inter3: la $t1, ter
         
 leer3:  move $a0, $t0
         la $a1, buf
@@ -99,13 +97,13 @@ leer3:  move $a0, $t0
         syscall
 
         lb $t4, 0($a0)
-        sb $t4, 0($t3)
+        sb $t4, 0($t1)
         
-        addi $t3, $t3, 1
+        addi $t1, $t1, 1
 	
         b leer3
         
-comparar:       lb $t5, nuevPunt                #cargo el nuevo puntaje en t5
+comparar:       lb $t5, nuevPunt        #cargo el nuevo puntaje en t5
                 
                 la $t1, prim            #cargo prim en t1
                 lb $t4, 0($t1)                    #cargo prim en t4
