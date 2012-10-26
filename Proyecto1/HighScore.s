@@ -18,6 +18,7 @@
 # t2: segunda puntuacion
 # t3: tercera puntuacion
 # t4: temporal para mover cosas de lado a lado
+# s0: contador
 
 .data
 
@@ -91,7 +92,7 @@ leer3:  move $a0, $t0
         li $v0, 14
         syscall
 
-        blez $v0, intermed      
+        blez $v0, comparar      
         
         la $a0, buf
         li $v0, 4
@@ -103,21 +104,23 @@ leer3:  move $a0, $t0
         addi $t3, $t3, 1
 	
         b leer3
-
-intermed:       la $t1, prim            #cargo prim en t1
-                la $t2, seg             #cargo seg en t2
-                la $t3, ter             #cargo ter en t3
         
 comparar:       lb $t5, nuevPunt                #cargo el nuevo puntaje en t5
-                move $s0, $zero                 #muevo cero a s0
                 
-                lb $t4, prim                    #cargo prim en t4
+                la $t1, prim            #cargo prim en t1
+                lb $t4, 0($t1)                    #cargo prim en t4
                 bgt $t5, $t4, escrib1    #si la nueva puntuacion es mas
                                                 #grande sobreescribo
-                lb $t4, seg     
+                
+                la $t1, seg             #cargo seg en t2
+                move $a0 $t1
+                li $v0 4
+                syscall
+                lb $t4, 0($t1)     
                 bgt $t5, $t4, escrib2
 
-                lb $t4, ter
+                la $t3, ter             #cargo ter en t3
+                lb $t4, 0($t3)
                 blt $t5, $t4, escrib3
           
 escrib1:        la $t5, nuevPunt
