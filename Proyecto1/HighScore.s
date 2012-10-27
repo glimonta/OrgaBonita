@@ -104,10 +104,12 @@ leer3:  move $a0, $t0
         b leer3
         
 comparar:       lb $t5, nuevPunt        #cargo el nuevo puntaje en t5
+
+                move $s0, $zero
                 
                 la $t1, prim            #cargo prim en t1
                 lb $t4, 0($t1)                    #cargo prim en t4
-                bgt $t5, $t4, escrib1    #si la nueva puntuacion es mas
+                bgt $t5, $t4, escrib1a    #si la nueva puntuacion es mas
                                                 #grande sobreescribo
                 
                 la $t1, seg             #cargo seg en t2
@@ -115,15 +117,25 @@ comparar:       lb $t5, nuevPunt        #cargo el nuevo puntaje en t5
                 li $v0 4
                 syscall
                 lb $t4, 0($t1)     
-                bgt $t5, $t4, escrib2
+                bgt $t5, $t4, escrib2a
 
                 la $t3, ter             #cargo ter en t3
                 lb $t4, 0($t3)
-                blt $t5, $t4, escrib3
+                blt $t5, $t4, escrib3a
           
-escrib1:        la $t5, nuevPunt
-                la $t4, prim
+escrib1a:       la $t5, seg
+                la $t4, ter
+                b sobreescribir1
 
+escrib1b:       move $s0, $zero
+                la $t5, prim
+                la $t4, seg
+                b sobreescribir1
+
+escrib1c:       move $s0, $zero
+                la $t5, nuevPunt
+                la $t4, prim
+                
 sobreescribir1: lb $t6, 0($t5)
 
                 move $a0, $t6
@@ -134,6 +146,7 @@ sobreescribir1: lb $t6, 0($t5)
 
                 addi $t5, $t5, 1
                 addi $t4, $t4, 1
+                addi $s0, $s0, 1
 
                 bnez $t6, sobreescribir1
                 b fin
