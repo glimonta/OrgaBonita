@@ -152,7 +152,7 @@ checknPunt:     beq $s0, 3, checknPunt2
                 b cargarPrim
                 
 checknPunt2:    la $s5, punN
-                lb $s6, 0($s5)
+                lb $s6, 1($s5)
                 addi $s6, $s6, -38
                 sb $s6, 0($s5)
                 
@@ -182,7 +182,7 @@ check1Punt:     beq $s0, 3, check1Punt2
                 b cargarSeg
                 
 check1Punt2:    la $s5, pun1
-                lb $s6, 0($s5)
+                lb $s6, 1($s5)
                 addi $s6, $s6, -38
                 sb $s6, 0($s5)
                 
@@ -212,7 +212,7 @@ check2Punt:     beq $s0, 3, check2Punt2
                 b cargarTer
                 
 check2Punt2:    la $s5, pun2
-                lb $s6, 0($s5)
+                lb $s6, 1($s5)
                 addi $s6, $s6, -38
                 sb $s6, 0($s5)
                 
@@ -242,7 +242,7 @@ check3Punt:     beq $s0, 3, check3Punt2
                 b comparar
                 
 check3Punt2:    la $s5, pun3
-                lb $s6, 0($s5)
+                lb $s6, 1($s5)
                 addi $s6, $s6, -38
                 sb $s6, 0($s5)
                 
