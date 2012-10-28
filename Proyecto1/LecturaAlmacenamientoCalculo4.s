@@ -212,6 +212,9 @@ ErrorLectura:   la $a0, error	#imprimimos mensaje de error
                 li $v0, 4
                 syscall
 
+		li $v0, 10
+        	syscall
+
 finLec: la $a0,finDeArch        #imprimo mensaje de que lei el archivo
         li $v0, 4
         syscall
@@ -256,8 +259,9 @@ read1:  move $a0, $t0           #movemos el file descriptor a a0
         syscall
 
         lb $t4, 0($a0)          #cargamos el byte del buffer en t4
+	beq $t4, $zero, jump1
         sb $t4, 0($t2)          #guardamos este byte en la direccion de prim
-        
+jump1:	
         beq $t4, 0xa, inter2    #si llegamos al salto de linea nos vamos
                                 #a inter2
 
@@ -280,8 +284,9 @@ read2:  move $a0, $t0           #movemos el file descriptor a a0
         syscall
 
         lb $t4, 0($a0)          #cargamos el byte del buffer en t4
+	beq $t4, $zero, jump2
         sb $t4, 0($t2)          #guardamos este byte en la direccion de seg
-        
+jump2:	
         beq $t4, 0xa, inter3    #si llegamos al salto de linea nos vamos a
                                 #inter3
         
@@ -304,8 +309,9 @@ read3:  move $a0, $t0           #movemos el file descriptor a a0
         syscall
 
         lb $t4, 0($a0)          #cargamos en t4 el byte del buffer
+	beq $t4, $zero, jump3
         sb $t4, 0($t2)          #almacenamos este byte en la direccion de ter
-        
+jump3:	
         beq $t4, 0xa, read3     #entramos al ciclo de nuevo
         
         addi $t2, $t2, 1
@@ -852,18 +858,32 @@ abrirEsc:       la $a0, archScore #open nombre del archivo
                 b abrirEsc
 
 escribir1:      move $a0, $t0        #le pasas el nombre del archivo
-        
+
+		la $t8, prim
+		move $s7, $zero
+		jal contat
+	
                 la $a1, prim
-                li $a2, 14              # Max nummero de bytes a escribir
+                move $a2, $s7              # Max nummero de bytes a escribir
                 li $v0, 15              # write
                 syscall
                 
-escribir2:      la $a1, seg
+escribir2:	la $t8, seg
+		move $s7, $zero
+		jal contat
+
+		la $a1, seg
+		move $a2, $s7
                 li $v0, 15
                 syscall
                 
-escribir3:      la $a1, ter
-                li $v0, 15
+escribir3:	la $t8, seg
+		move $s7, $zero
+		jal contat
+	
+		la $a1, ter
+		move $a2, $s7
+		li $v0, 15
                 syscall
 
                 move $a0, $t0
@@ -899,13 +919,6 @@ escribir3:      la $a1, ter
 #        la $t8, array
 
 #        move $s7, $zero
-
-#contat:        lb $t4, 0($t8)
-#       beq $t4, 0xa, sali2 # me calcula el espacio exacto de la palabra
-#       beq $t4, $zero sali2 # para no usar espacio de mas y que escriba bien
-#       addi $s7, $s7, 1
-#       addi $t8, $t8, 1
-#       b contat
 
 #sali2:  
 #        la $a1, array
@@ -996,3 +1009,12 @@ tresDigitos:    lb $s4, 0($t7)          #cargamos el primer byte del numero
                 add $s0, $s0, $s3       #ahora se lo sumamos a las unidades
                 
                 jr $ra
+
+contat:	lb $t4, 0($t8)
+	beq $t4, 0xa, sali2 # me calcula el espacio exacto de la palabra
+	beq $t4, $zero sali2 # para no usar espacio de mas y que escriba bien
+	addi $s7, $s7, 1
+	addi $t8, $t8, 1
+	b contat
+sali2:	addi $s7, $s7, 1
+	jr $ra

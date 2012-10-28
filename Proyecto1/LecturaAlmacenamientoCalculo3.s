@@ -116,10 +116,8 @@ checkInt:       beq $t1, 3, checkInt2   #si tiene 2 digitos va a check2
                 b leer2                 #saltamos a leer2
 
 checkInt2:      la $t2, numInt          #cargamos la direccion de numInt
-                lb $t4, 1($t2)          #cargamos el segundo digito del numero
-en t4
-                addi $t4, $t4, -38      #como tiene dos digitos se le resta 48 y
-se suman 10
+                lb $t4, 1($t2)          #cargamos el segundo digito del numero en t4
+                addi $t4, $t4, -38      #como tiene dos digitos se le resta 48 y se suman 10
                 sb $t4, 0($t2)          #lo guardamos de nuevo en numInt
                 li $t1, 0               #reiniciamos el contador
 
@@ -159,18 +157,15 @@ checkCod:       beq $t1, 3, checkCod2   #si tiene 2 digitos va a check2
                 b pedirEspacio          #saltamos a pedirEspacio
 
 checkCod2:      la $t3, numCod          #cargamos la direccion de numInt
-                lb $t4, 1($t3)          #cargamos el segundo digito del numero
-en t4
-                addi $t4, $t4, -38      #como tiene dos digitos se le resta 48 y
-se suman 10
+                lb $t4, 1($t3)          #cargamos el segundo digito del numero en t4
+                addi $t4, $t4, -38      #como tiene dos digitos se le resta 48 y se suman 10
                 sb $t5, 0($t3)          #lo guardamos de nuevo en numInt
                 li $t1, 0               #reiniciamos el contador
 
 pedirEspacio:   lb $t4, numCod          #cargamos el numCod en t4
                 sll $t4, $t4, 2         #multiplicamos por 4 
 
-                move $a0, $t4           #movemos a a0 cuanto espacio queremos
-del sistema
+                move $a0, $t4           #movemos a a0 cuanto espacio queremos del sistema
                 li $v0, 9               #pedimos el espacio
                 syscall
 
@@ -194,8 +189,7 @@ leer3:  move $a0, $t0           #muevo file descriptor a a0
 
         beq $t4, 0xa, leer3     #si es un salto de linea va a leer4
 
-        sb $t4, 0($t6)          #almaceno en t6 (memoria donde estan los
-codigos)
+        sb $t4, 0($t6)          #almaceno en t6 (memoria donde estan los codigos)
 
         blt $t4, 0x30, ErrorLectura
         bgt $t4, 0x39, ErrorLectura
@@ -278,8 +272,7 @@ inic:   lb $t7, numInt  #cargamos el max de intentos en t7
         li $v0, 4
         syscall
 
-        move $t6, $t5           #asigno a t6 la direccion que esta en t5
-(codigos)
+        move $t6, $t5           #asigno a t6 la direccion que esta en t5 (codigos)
         la $s7, codAct
 
 bigCiclo:       la $a0, salida1 #imprimimos que intento es
@@ -386,16 +379,14 @@ cAeqB:  lb $s3, 0($t6)          # que carrizo hace esto?
         li $v0, 4
         syscall
 
-        addi $s2, $s2, 1        #aumento el contador de la pos del cod de
-entrada
+        addi $s2, $s2, 1        #aumento el contador de la pos del cod de entrada
         addu $s0, $s0, 1        #me muevo 1byte en el codigo de entrada
 
         la $t6, codAct          #cargo la direccion del codigo actual a t6
 
         b finCiclo
 
-else:   addi $t9, $t9, 1        #aumento el contador de la posicion del codigo
-actual
+else:   addi $t9, $t9, 1        #aumento el contador de la posicion del codigo actual
         addu $t6, $t6, 1        #me muevo 1byte en el codigo actual
 
         bne $t9, 4, finCiclo    #si ya reviso los 4 numeros sale
@@ -404,8 +395,7 @@ actual
         li $v0, 4
         syscall
 
-        addi $s2, $s2, 1        #aumento el contador de la pos del codigo de
-entrada
+        addi $s2, $s2, 1        #aumento el contador de la pos del codigo de entrada
         addu $s0, $s0, 1        #me muevo 1 byte en el codigo de entrada
 
         lb $s3, 0($t6)          #cargo el codigo actual en s3
@@ -535,9 +525,9 @@ escribir:
 
 #
 # creo que no hace falta esto de contar por que ya deberia estar listo en el
-formato que esta
+#formato que esta
 # dentro de los espacios esos de memoria, aunque puede ser que si les tengamos
-que hacer eso para evitar
+#que hacer eso para evitar
 # problemas con el /n
 #
 
