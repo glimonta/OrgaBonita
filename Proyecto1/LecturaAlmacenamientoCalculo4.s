@@ -258,7 +258,7 @@ read1:  move $a0, $t0           #movemos el file descriptor a a0
         lb $t4, 0($a0)          #cargamos el byte del buffer en t4
         sb $t4, 0($t2)          #guardamos este byte en la direccion de prim
         
-        beq $t4, 0xd, inter2    #si llegamos al salto de linea nos vamos
+        beq $t4, 0xa, inter2    #si llegamos al salto de linea nos vamos
                                 #a inter2
 
         addi $t2, $t2, 1        #nos movemos 1 byte en la direccion de prim
@@ -282,7 +282,7 @@ read2:  move $a0, $t0           #movemos el file descriptor a a0
         lb $t4, 0($a0)          #cargamos el byte del buffer en t4
         sb $t4, 0($t2)          #guardamos este byte en la direccion de seg
         
-        beq $t4, 0xd, inter3    #si llegamos al salto de linea nos vamos a
+        beq $t4, 0xa, inter3    #si llegamos al salto de linea nos vamos a
                                 #inter3
         
         addi $t2, $t2, 1        #nos movemos 1 byte en la direccion de seg
@@ -306,7 +306,7 @@ read3:  move $a0, $t0           #movemos el file descriptor a a0
         lb $t4, 0($a0)          #cargamos en t4 el byte del buffer
         sb $t4, 0($t2)          #almacenamos este byte en la direccion de ter
         
-        beq $t4, 0xd, read3     #entramos al ciclo de nuevo
+        beq $t4, 0xa, read3     #entramos al ciclo de nuevo
         
         addi $t2, $t2, 1
 
