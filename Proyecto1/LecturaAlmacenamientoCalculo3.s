@@ -522,6 +522,11 @@ escribir:
 
 	move $s7, $zero
 
+#
+# creo que no hace falta esto de contar por que ya deberia estar listo en el formato que esta
+# dentro de los espacios esos de memoria, aunque puede ser que si les tengamos que hacer eso para evitar
+# problemas con el /n
+#
 
 contar:	lb $t4, 0($t8)
 	beq $t4, 0xa, sali # me calcula el espacio exacto de la palabra
@@ -569,6 +574,8 @@ sali2:
 	li $v0, 10
 	syscall
 
+########################################################################################
+	
 HS:	la $a0, linea
 	li $v0, 4
 	syscall
