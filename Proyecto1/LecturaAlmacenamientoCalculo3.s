@@ -33,31 +33,32 @@
 # s8: file descriptor (write)
 .data
 
-		.align  4
-partida:	.word	0
-nomArch:	.asciiz "aci.txt"
-archScore:	.asciiz "score.txt"
-espacio: 	.asciiz " "
-error:		.asciiz "\n ERROR: No se ha leido un numero :("
-finDeArch:	.asciiz "\n Archivo cargado con exito! :D \n"
-HighScore:	.asciiz "\n Deberia imprimir los tres mejores, \n pero no lo hago porque soy idiota :(\n"
-salida1: 	.asciiz "Intento #"
-linea:		.asciiz " \n"
-blanco:		.asciiz "B "
-negro:		.asciiz "N "
-ninguno: 	.asciiz "X "
-preguntaFinal:	.asciiz "\nQuieres jugar otra vez? :D (y/n)\n"
+                .align  4
+partida:        .word   0
+nomArch:        .asciiz "aci.txt"
+archScore:      .asciiz "score.txt"
+espacio:        .asciiz " "
+error:          .asciiz "\n ERROR: No se ha leido un numero :("
+finDeArch:      .asciiz "\n Archivo cargado con exito! :D \n"
+HighScore:      .asciiz "\n Deberia imprimir los tres mejores, \n pero no lo
+hago porque soy idiota :(\n"
+salida1:        .asciiz "Intento #"
+linea:          .asciiz " \n"
+blanco:         .asciiz "B "
+negro:          .asciiz "N "
+ninguno:        .asciiz "X "
+preguntaFinal:  .asciiz "\nQuieres jugar otra vez? :D (y/n)\n"
 preguntaNombre: .asciiz "Como te llamas? \n"
-buf:	 	.space 32
-numInt:	 	.space 8
-numCod: 	.space 8
-leIn:		.space 5
-nombre:		.space 8
-codAct:		.space 4
-dummy:		.asciiz "  "
-array:		.space 30
+buf:            .space 32
+numInt:         .space 8
+numCod:         .space 8
+leIn:           .space 5
+nombre:         .space 8
+codAct:         .space 4
+dummy:          .asciiz "  "
+array:          .space 30
 
-		.align 4
+                .align 4
 
 .text
 
@@ -67,285 +68,292 @@ array:		.space 30
 #                                                    #
 ######################################################
 
-main:	la $a0, nomArch		#guardo el nombre del archivo en a0
-	li $v0, 13		#indico que abrire
-	li $a1, 0x0		#indico que solo será para lectura
-	syscall
+main:   la $a0, nomArch         #guardo el nombre del archivo en a0
+        li $v0, 13              #indico que abrire
+        li $a1, 0x0             #indico que solo será para lectura
+        syscall
 
-	move $t0, $v0		#guardo el file descriptor en t0
-	
-	la $t2, numInt		#cargo direccion de numInt
-	la $t3, numCod		#cargo direccion de numCod
-	li $t1, 0		#inicializo contador en cero
+        move $t0, $v0           #guardo el file descriptor en t0
 
-leer1:	move $a0, $t0		#muevo file descriptor a a0
-	la $a1, buf		#indico la direccion del buffer
-	li $a2, 1		#indico que leere un byte
-	li $v0, 14		#indico que leere
-	syscall
+        la $t2, numInt          #cargo direccion de numInt
+        la $t3, numCod          #cargo direccion de numCod
+        li $t1, 0               #inicializo contador en cero
 
-	blez $v0, finLec	#si lo que retorna en v0 es 0 => fin de
-				#archivo y si es -1 => ERROR
+leer1:  move $a0, $t0           #muevo file descriptor a a0
+        la $a1, buf             #indico la direccion del buffer
+        li $a2, 1               #indico que leere un byte
+        li $v0, 14              #indico que leere
+        syscall
 
-	la $a0, buf		#esto es para imprimir lo que lei
-	li $v0, 4		#en el buffer, no es relevante para el
-	syscall 		#codigo final del proyecto
+        blez $v0, finLec        #si lo que retorna en v0 es 0 => fin de
+                                #archivo y si es -1 => ERROR
 
-	lb $t4, 0($a0)		#not quite sure if this works
-	sb $t4, 0($t2)		#cargo el byte que tengo en el buffer 
-				#almaceno en t2 que es numInt
+        la $a0, buf             #esto es para imprimir lo que lei
+        li $v0, 4               #en el buffer, no es relevante para el
+        syscall                 #codigo final del proyecto
 
-	addi $t2, $t2, 1 	#movemos numInt 1 byte
-	addi $t1, $t1, 1	#aumentamos en 1 el contador
+        lb $t4, 0($a0)          #not quite sure if this works
+        sb $t4, 0($t2)          #cargo el byte que tengo en el buffer 
+                                #almaceno en t2 que es numInt
 
-	beq $t4, 0xa, checkInt	#si es un salto de linea pasamos a la conversion
-	
-	blt $t4, 0x30, ErrorLectura
-	bgt $t4, 0x39, ErrorLectura
+        addi $t2, $t2, 1        #movemos numInt 1 byte
+        addi $t1, $t1, 1        #aumentamos en 1 el contador
 
-	b leer1
+        beq $t4, 0xa, checkInt  #si es un salto de linea pasamos a la conversion
 
-checkInt: 	beq $t1, 3, checkInt2 	#si tiene 2 digitos va a check2 
-		la $t2, numInt		#cargamos la direccion de numInt
-		lb $t4, 0($t2)		#cargamos el numero en ascii en t4
-		addi $t4, $t4, -48	#restamos 48 para que nos de el entero
-		sb $t4, 0($t2)		#lo guardamos de nuevo en numInt
+        blt $t4, 0x30, ErrorLectura
+        bgt $t4, 0x39, ErrorLectura
 
-		li $t1, 0		#reiniciamos el contador
-		b leer2			#saltamos a leer2
+        b leer1
 
-checkInt2:	la $t2, numInt		#cargamos la direccion de numInt
-		lb $t4, 1($t2)		#cargamos el segundo digito del numero en t4
-		addi $t4, $t4, -38 	#como tiene dos digitos se le resta 48 y se suman 10
-		sb $t4, 0($t2)		#lo guardamos de nuevo en numInt
-		li $t1, 0		#reiniciamos el contador
+checkInt:       beq $t1, 3, checkInt2   #si tiene 2 digitos va a check2 
+                la $t2, numInt          #cargamos la direccion de numInt
+                lb $t4, 0($t2)          #cargamos el numero en ascii en t4
+                addi $t4, $t4, -48      #restamos 48 para que nos de el entero
+                sb $t4, 0($t2)          #lo guardamos de nuevo en numInt
 
-leer2:	move $a0, $t0		#muevo file descriptor a a0
-	la $a1, buf		#indico la direccion del buffer
-	li $a2, 1		#indico que leere un byte
-	li $v0, 14		#indico que leere
-	syscall
+                li $t1, 0               #reiniciamos el contador
+                b leer2                 #saltamos a leer2
 
-	blez $v0, finLec	#si lo que retorna en v0 es 0 => fin de
-				#archivo y si es -1 => ERROR
+checkInt2:      la $t2, numInt          #cargamos la direccion de numInt
+                lb $t4, 1($t2)          #cargamos el segundo digito del numero
+en t4
+                addi $t4, $t4, -38      #como tiene dos digitos se le resta 48 y
+se suman 10
+                sb $t4, 0($t2)          #lo guardamos de nuevo en numInt
+                li $t1, 0               #reiniciamos el contador
 
-	la $a0, buf		#esto es para imprimir lo que lei
-	li $v0, 4		#en el buffer, no es relevante para el
-	syscall 		#codigo final del proyecto
+leer2:  move $a0, $t0           #muevo file descriptor a a0
+        la $a1, buf             #indico la direccion del buffer
+        li $a2, 1               #indico que leere un byte
+        li $v0, 14              #indico que leere
+        syscall
 
-	lb $t4, 0($a0)		#cargo en t4 lo que hay en el buf
-	sb $t4, 0($t3)		#almaceno en numCod el digito
+        blez $v0, finLec        #si lo que retorna en v0 es 0 => fin de
+                                #archivo y si es -1 => ERROR
 
-	addi $t1, $t1, 1	#aumento en 1 el contador
-	addi $t3, $t3, 1 	#movemos numCod 1 byte
+        la $a0, buf             #esto es para imprimir lo que lei
+        li $v0, 4               #en el buffer, no es relevante para el
+        syscall                 #codigo final del proyecto
 
-	beq $t4, 0xa, checkCod 	#si es un salto de linea vamos a checkCod
+        lb $t4, 0($a0)          #cargo en t4 lo que hay en el buf
+        sb $t4, 0($t3)          #almaceno en numCod el digito
 
-	blt $t4, 0x30, ErrorLectura
-	bgt $t4, 0x39, ErrorLectura
+        addi $t1, $t1, 1        #aumento en 1 el contador
+        addi $t3, $t3, 1        #movemos numCod 1 byte
 
-	b leer2
+        beq $t4, 0xa, checkCod  #si es un salto de linea vamos a checkCod
 
-checkCod: 	beq $t1, 3, checkCod2 	#si tiene 2 digitos va a check2 
-		la $t3, numCod		#cargamos la direccion de numInt
-		lb $t4, 0($t3)		#cargamos el numero en ascii en t4
-		addi $t4, $t4, -48	#restamos 48 para que nos de el entero
-		sb $t4, 0($t3)		#lo guardamos de nuevo en numInt
+        blt $t4, 0x30, ErrorLectura
+        bgt $t4, 0x39, ErrorLectura
 
-		li $t1, 0		#reiniciamos el contador
-		b pedirEspacio		#saltamos a pedirEspacio
+        b leer2
 
-checkCod2:	la $t3, numCod		#cargamos la direccion de numInt
-		lb $t4, 1($t3)		#cargamos el segundo digito del numero en t4
-		addi $t4, $t4, -38 	#como tiene dos digitos se le resta 48 y se suman 10
-		sb $t5, 0($t3)		#lo guardamos de nuevo en numInt
-		li $t1, 0		#reiniciamos el contador
+checkCod:       beq $t1, 3, checkCod2   #si tiene 2 digitos va a check2 
+                la $t3, numCod          #cargamos la direccion de numInt
+                lb $t4, 0($t3)          #cargamos el numero en ascii en t4
+                addi $t4, $t4, -48      #restamos 48 para que nos de el entero
+                sb $t4, 0($t3)          #lo guardamos de nuevo en numInt
 
-pedirEspacio: 	lb $t4, numCod		#cargamos el numCod en t4
-		sll $t4, $t4, 2		#multiplicamos por 4 
-		
-		move $a0, $t4		#movemos a a0 cuanto espacio queremos del sistema
-		li $v0, 9		#pedimos el espacio
-		syscall
+                li $t1, 0               #reiniciamos el contador
+                b pedirEspacio          #saltamos a pedirEspacio
 
-		la $t5, 0($v0)
-		move $t6, $t5
+checkCod2:      la $t3, numCod          #cargamos la direccion de numInt
+                lb $t4, 1($t3)          #cargamos el segundo digito del numero
+en t4
+                addi $t4, $t4, -38      #como tiene dos digitos se le resta 48 y
+se suman 10
+                sb $t5, 0($t3)          #lo guardamos de nuevo en numInt
+                li $t1, 0               #reiniciamos el contador
 
-leer3: 	move $a0, $t0		#muevo file descriptor a a0
-	la $a1, buf		#indico la direccion del buffer
-	li $a2, 1		#indico que leere un byte
-	li $v0, 14		#indico que leere
-	syscall
+pedirEspacio:   lb $t4, numCod          #cargamos el numCod en t4
+                sll $t4, $t4, 2         #multiplicamos por 4 
 
-	blez $v0, finLec	#si lo que retorna en v0 es 0 => fin de
-				#archivo y si es -1 => ERROR
+                move $a0, $t4           #movemos a a0 cuanto espacio queremos
+del sistema
+                li $v0, 9               #pedimos el espacio
+                syscall
 
-	la $a0, buf		#esto es para imprimir lo que lei
-	li $v0, 4		#en el buffer, no es relevante para el
-	syscall 		#codigo final del proyecto
+                la $t5, 0($v0)
+                move $t6, $t5
 
-	lb $t4, 0($a0)		#cargo en t4 lo que hay en el buf
+leer3:  move $a0, $t0           #muevo file descriptor a a0
+        la $a1, buf             #indico la direccion del buffer
+        li $a2, 1               #indico que leere un byte
+        li $v0, 14              #indico que leere
+        syscall
 
-	beq $t4, 0xa, leer3	#si es un salto de linea va a leer4
+        blez $v0, finLec        #si lo que retorna en v0 es 0 => fin de
+                                #archivo y si es -1 => ERROR
 
-	sb $t4, 0($t6)		#almaceno en t6 (memoria donde estan los codigos)
+        la $a0, buf             #esto es para imprimir lo que lei
+        li $v0, 4               #en el buffer, no es relevante para el
+        syscall                 #codigo final del proyecto
 
-	blt $t4, 0x30, ErrorLectura
-	bgt $t4, 0x39, ErrorLectura
+        lb $t4, 0($a0)          #cargo en t4 lo que hay en el buf
 
-	addi $t6, $t6, 1	#sumamos 1 a la direccion de los codigos
-	
-	b leer3			#saltamos a leer3 (ciclo)
+        beq $t4, 0xa, leer3     #si es un salto de linea va a leer4
 
-leer4:	#addi $t6, $t6, 1 	#cuando es salto de linea agregamos 1 a t6 
-	#b leer3			#y regresamos a leer3
+        sb $t4, 0($t6)          #almaceno en t6 (memoria donde estan los
+codigos)
 
-ErrorLectura: 	la $a0, error	#imprimimos mensaje de error
-		li $v0, 4
-		syscall
+        blt $t4, 0x30, ErrorLectura
+        bgt $t4, 0x39, ErrorLectura
 
-finLec:	la $a0,finDeArch	#imprimo mensaje de que lei el archivo
-	li $v0, 4
-	syscall
+        addi $t6, $t6, 1        #sumamos 1 a la direccion de los codigos
 
-	move $a0, $t0		#cierro el archivo
-	li $v0, 16
-	syscall
+        b leer3                 #saltamos a leer3 (ciclo)
+
+leer4:  #addi $t6, $t6, 1       #cuando es salto de linea agregamos 1 a t6 
+        #b leer3                        #y regresamos a leer3
+
+ErrorLectura:   la $a0, error   #imprimimos mensaje de error
+                li $v0, 4
+                syscall
+
+finLec: la $a0,finDeArch        #imprimo mensaje de que lei el archivo
+        li $v0, 4
+        syscall
+
+        move $a0, $t0           #cierro el archivo
+        li $v0, 16
+        syscall
 
 #####################################################
-#						    #
-#  Se carga el highscore			    #
-#						    #
+#                                                   #
+#  Se carga el highscore                            #
+#                                                   #
 #                                                   #
 #####################################################
 
-	la $a0, archScore	#guardo el nombre del archivo en a0
-	li $v0, 13		#indico que abrire
-	li $a1, 0x0		#indico que solo será para lectura
-	syscall
+        la $a0, archScore       #guardo el nombre del archivo en a0
+        li $v0, 13              #indico que abrire
+        li $a1, 0x0             #indico que solo será para lectura
+        syscall
 
-	move $t0, $v0		#guardo el file descriptor en t0
-	
-read1:	move $a0, $t0		#muevo file descriptor a a0
-	la $a1, array		#indico la direccion del buffer
-	li $a2, 30		#indico que leere un byte
-	li $v0, 14		#indico que leere
-	syscall
+        move $t0, $v0           #guardo el file descriptor en t0
 
-	la $a0, array		#esto es para imprimir lo que lei
-	li $v0, 4		#en el buffer, no es relevante para el
-	syscall 		#codigo final del proyecto
+read1:  move $a0, $t0           #muevo file descriptor a a0
+        la $a1, array           #indico la direccion del buffer
+        li $a2, 30              #indico que leere un byte
+        li $v0, 14              #indico que leere
+        syscall
 
-	la $a0, linea
-	li $v0, 4
-	syscall
-	
+        la $a0, array           #esto es para imprimir lo que lei
+        li $v0, 4               #en el buffer, no es relevante para el
+        syscall                 #codigo final del proyecto
+
+        la $a0, linea
+        li $v0, 4
+        syscall
+
 ######################################################
 #                                                    #
-# 	    Comienzo del juego y calculo             #
+#           Comienzo del juego y calculo             #
 #                                                    #
 ######################################################
 
-inic:	lb $t7, numInt	#cargamos el max de intentos en t7
-	li $t8, 1	#contador del numero de intentos
-	
-	la $a0, preguntaNombre	#preguntamos el nombre del jugador
-	li $v0, 4
-	syscall
+inic:   lb $t7, numInt  #cargamos el max de intentos en t7
+        li $t8, 1       #contador del numero de intentos
 
-	li $v0, 8		#lee los 8 bytes de la entrada y los
-	la $a0, nombre		#almacena en nombre
-	li $a1, 8
-	syscall
+        la $a0, preguntaNombre  #preguntamos el nombre del jugador
+        li $v0, 4
+        syscall
 
-	la $a0, nombre
-	li $v0, 4
-	syscall
+        li $v0, 8               #lee los 8 bytes de la entrada y los
+        la $a0, nombre          #almacena en nombre
+        li $a1, 8
+        syscall
 
-	li $t1, 0x30
-	move $a0, $t1
-	li $v0, 11
-	syscall
+        la $a0, nombre
+        li $v0, 4
+        syscall
 
-	la $a0, linea
-	li $v0, 4
-	syscall
+        li $t1, 0x30
+        move $a0, $t1
+        li $v0, 11
+        syscall
 
-	move $t6, $t5 		#asigno a t6 la direccion que esta en t5 (codigos)
-	la $s7, codAct
-	
-bigCiclo:	la $a0, salida1	#imprimimos que intento es
-		li $v0, 4
-		syscall
-		
-		move $a0, $t8	#movemos el numero de intento a a0
-		li $v0, 1	#imprimir entero
-		syscall
+        la $a0, linea
+        li $v0, 4
+        syscall
 
-		la $a0, linea
-		li $v0, 4
-		syscall
+        move $t6, $t5           #asigno a t6 la direccion que esta en t5
+(codigos)
+        la $s7, codAct
 
-		la $s0, leIn	#cargamos el espacio para lo dado por el usuario
-		li $t9, 0	#inicializamos contador en cero
+bigCiclo:       la $a0, salida1 #imprimimos que intento es
+                li $v0, 4
+                syscall
+
+                move $a0, $t8   #movemos el numero de intento a a0
+                li $v0, 1       #imprimir entero
+                syscall
+
+                la $a0, linea
+                li $v0, 4
+                syscall
+
+                la $s0, leIn    #cargamos el espacio para lo dado por el usuario
+                li $t9, 0       #inicializamos contador en cero
 
 #####################################################################
 #vamos leyendo uno a uno los caracteres que intenta poner el usuario#
 #que se almacenan en leIn                                           #
 #####################################################################
 
-leerC:	li $v0, 12 		#leemos caracter
-	syscall
+leerC:  li $v0, 12              #leemos caracter
+        syscall
 
-	beq $v0, 0x51, preg	#si es Q pregunta si quiere salir del juego
-	beq $v0, 0x71, preg	#si es q pregunta si quiere salir del juego
-	beq $v0, 0x45, HS	#si es E muestra los highscores
-	beq $v0, 0x65, HS	#si es e muestra los highscores
+        beq $v0, 0x51, preg     #si es Q pregunta si quiere salir del juego
+        beq $v0, 0x71, preg     #si es q pregunta si quiere salir del juego
+        beq $v0, 0x45, HS       #si es E muestra los highscores
+        beq $v0, 0x65, HS       #si es e muestra los highscores
 
-	move $s1, $v0 		#movemos el caracter a s1
-	sb $s1, 0($s0)		#almacenamos el caracter de s1 a leIn
+        move $s1, $v0           #movemos el caracter a s1
+        sb $s1, 0($s0)          #almacenamos el caracter de s1 a leIn
 
-	addi $s0, $s0, 1	#movemos 1byte la direccion de s0
-	addi $t9, $t9, 1	#aumentamos en uno el contador
+        addi $s0, $s0, 1        #movemos 1byte la direccion de s0
+        addi $t9, $t9, 1        #aumentamos en uno el contador
 
-	bne $t9, 4, leerC	#repite el ciclo hasta que lea 4 char
-	
-	move $a0, $s0		#aun no se para que es esto
-	li $v0, 4
-	syscall
+        bne $t9, 4, leerC       #repite el ciclo hasta que lea 4 char
 
-	la $s0, leIn		#ni esto
+        move $a0, $s0           #aun no se para que es esto
+        li $v0, 4
+        syscall
 
-	li $t9, 0 		#inicializamos contador pos codig
-	li $s2, 0		#inicializamos contador	pos entrada
+        la $s0, leIn            #ni esto
 
-	la $a0, linea
-	li $v0, 4
-	syscall
+        li $t9, 0               #inicializamos contador pos codig
+        li $s2, 0               #inicializamos contador pos entrada
 
-buscarCod:	lw $s6, partida
-		la $s7, codAct
-		sll $s6, $s6, 2
-		move $t6, $t5
-		add $t6, $t6, $s6
+        la $a0, linea
+        li $v0, 4
+        syscall
+
+buscarCod:      lw $s6, partida
+                la $s7, codAct
+                sll $s6, $s6, 2
+                move $t6, $t5
+                add $t6, $t6, $s6
 
 #aqui usamos s3 como temporal para pasar el codigo y s2 como contador
 
-obtenerCod:	lb $s3, 0($t6)
-		sb $s3, 0($s7)
-		addu $s7, $s7, 1
-		addu $t6, $t6, 1
-		addi $s2, $s2, 1
-		blt $s2, 4, obtenerCod
+obtenerCod:     lb $s3, 0($t6)
+                sb $s3, 0($s7)
+                addu $s7, $s7, 1
+                addu $t6, $t6, 1
+                addi $s2, $s2, 1
+                blt $s2, 4, obtenerCod
 
-intermed:	la $t6, codAct
-		li $s2, 0
-	
-		move $s5, $zero
+intermed:       la $t6, codAct
+                li $s2, 0
+
+                move $s5, $zero
 
 ######################################################
 #                                                    #
-# 	        Ciclo de comparacion:                #
+#               Ciclo de comparacion:                #
 #                                                    #
 #  Este ciclo compara lo que introduce el jugador    #
 #  y va comparando con los caracteres del codigo     #
@@ -356,241 +364,247 @@ intermed:	la $t6, codAct
 #  "X".                                              #
 ######################################################
 
-ciclo:	lb $s3, 0($t6)	#cargamos el elemento actual del codigo actual
-	lb $s4, 0($s0)	#cargamos el elemento actual del codigo de entrada
-	
-	beq $s3, $s4, AeqB 	#primer condicional si son iguales
-	b else
+ciclo:  lb $s3, 0($t6)  #cargamos el elemento actual del codigo actual
+        lb $s4, 0($s0)  #cargamos el elemento actual del codigo de entrada
 
-AeqB:	beq $s2, $t9, XeqY	#segundo condicional si los indices son iguales
-	
-	la $a0, blanco	
+        beq $s3, $s4, AeqB      #primer condicional si son iguales
+        b else
 
-	b cAeqB
+AeqB:   beq $s2, $t9, XeqY      #segundo condicional si los indices son iguales
 
-XeqY:	la $a0, negro		#imprimo negro
-	addi $s5, $s5, 1	
+        la $a0, blanco  
 
-cAeqB:	lb $s3, 0($t6)		# que carrizo hace esto?
+        b cAeqB
 
-	li $t9, 0
+XeqY:   la $a0, negro           #imprimo negro
+        addi $s5, $s5, 1        
 
-	li $v0, 4
-	syscall
+cAeqB:  lb $s3, 0($t6)          # que carrizo hace esto?
 
-	addi $s2, $s2, 1	#aumento el contador de la pos del cod de entrada
-	addu $s0, $s0, 1	#me muevo 1byte en el codigo de entrada
+        li $t9, 0
 
-	la $t6, codAct		#cargo la direccion del codigo actual a t6
+        li $v0, 4
+        syscall
 
-	b finCiclo
+        addi $s2, $s2, 1        #aumento el contador de la pos del cod de
+entrada
+        addu $s0, $s0, 1        #me muevo 1byte en el codigo de entrada
 
-else: 	addi $t9, $t9, 1	#aumento el contador de la posicion del codigo actual
-	addu $t6, $t6, 1	#me muevo 1byte en el codigo actual
+        la $t6, codAct          #cargo la direccion del codigo actual a t6
 
-	bne $t9, 4, finCiclo 	#si ya reviso los 4 numeros sale
+        b finCiclo
 
-	la $a0, ninguno 	#imprimo "X"
-	li $v0, 4
-	syscall
+else:   addi $t9, $t9, 1        #aumento el contador de la posicion del codigo
+actual
+        addu $t6, $t6, 1        #me muevo 1byte en el codigo actual
 
-	addi $s2, $s2, 1	#aumento el contador de la pos del codigo de entrada
-	addu $s0, $s0, 1	#me muevo 1 byte en el codigo de entrada
+        bne $t9, 4, finCiclo    #si ya reviso los 4 numeros sale
 
-	lb $s3, 0($t6)		#cargo el codigo actual en s3
-	li $t9, 0
-	
-	la $t6, codAct
+        la $a0, ninguno         #imprimo "X"
+        li $v0, 4
+        syscall
 
-finCiclo:	blt $s2, 4, ciclo
-	
-		la $a0, linea
-		li $v0, 4
-		syscall
-	
-		beq $s5, 4, reinic
-		
-		addi $t8, $t8, 1
+        addi $s2, $s2, 1        #aumento el contador de la pos del codigo de
+entrada
+        addu $s0, $s0, 1        #me muevo 1 byte en el codigo de entrada
 
-		li $s5, 0
+        lb $s3, 0($t6)          #cargo el codigo actual en s3
+        li $t9, 0
 
-		bgt $t8, $t7, fin
+        la $t6, codAct
+
+finCiclo:       blt $s2, 4, ciclo
+
+                la $a0, linea
+                li $v0, 4
+                syscall
+
+                beq $s5, 4, reinic
+
+                addi $t8, $t8, 1
+
+                li $s5, 0
+
+                bgt $t8, $t7, fin
 
 # LIMPIAMOS EL LE IN
 
-		li $s2, 0
-		la $s0, leIn
+                li $s2, 0
+                la $s0, leIn
 
-clean:	sb $zero, 0($s0)
-	addi $s0, $s0, 1
-	addi $s2, $s2, 1
-	
-	bne $s2, 4, clean	#sale cuando haya limpiado todo leIn
+clean:  sb $zero, 0($s0)
+        addi $s0, $s0, 1
+        addi $s2, $s2, 1
 
-	b bigCiclo
+        bne $s2, 4, clean       #sale cuando haya limpiado todo leIn
 
-preg:	bne $s5, 4, noAdivino
+        b bigCiclo
 
-		beq $t8, $t7, enLaUltima
-		add $t1, $t1, 2
-		b noAdivino
-enLaUltima:	add $t1, $t1, 1
+preg:   bne $s5, 4, noAdivino
 
-noAdivino:	la $a0, nombre
-		li $v0, 4
-		syscall
-	
-		move $a0, $t1
-		li $v0, 11
-		syscall
+                beq $t8, $t7, enLaUltima
+                add $t1, $t1, 2
+                b noAdivino
+enLaUltima:     add $t1, $t1, 1
 
-		beq $s6, $s2, fin
-	
-pregun:	la $a0, preguntaFinal
-	li $v0, 4
-	syscall
+noAdivino:      la $a0, nombre
+                li $v0, 4
+                syscall
 
-	li $v0, 12
-	syscall
+                move $a0, $t1
+                li $v0, 11
+                syscall
 
-	move $s1, $v0
+                beq $s6, $s2, fin
 
-	la $a0, linea
-	li $v0, 4
-	syscall
+pregun: la $a0, preguntaFinal
+        li $v0, 4
+        syscall
 
-	beq $s1, 0x59, bigCiclo
-	beq $s1, 0x79, bigCiclo
+        li $v0, 12
+        syscall
 
-	beq $s1, 0x4e, fin
-	beq $s1, 0x6e, fin
+        move $s1, $v0
 
-	b pregun
+        la $a0, linea
+        li $v0, 4
+        syscall
+
+        beq $s1, 0x59, bigCiclo
+        beq $s1, 0x79, bigCiclo
+
+        beq $s1, 0x4e, fin
+        beq $s1, 0x6e, fin
+
+        b pregun
 
 
 #usamos s2 como temporal y luego reiniciamos su valor
-reinic:	lw $s6, partida		#cargamos a s6 el numero de partida
-	addi $s6, $s6, 1	#le sumamos uno
+reinic: lw $s6, partida         #cargamos a s6 el numero de partida
+        addi $s6, $s6, 1        #le sumamos uno
 
-	lb $s2, numCod
-	beq $s6, $s2, preg
+        lb $s2, numCod
+        beq $s6, $s2, preg
 
-	sw $s6, partida		#guardamos en memoria
+        sw $s6, partida         #guardamos en memoria
 
-	la $s7, codAct		#cargamos en s7 la direccion a codAct
-	li $t8, 1
-	b preg
+        la $s7, codAct          #cargamos en s7 la direccion a codAct
+        li $t8, 1
+        b preg
 ################################################################################
 fin:
-abrirEsc:	la $a0, archScore #open nombre del archivo
-		li $a1, 0x102 # 0x109 = 0x100 Create + 0x8 Append + 0x1 Write
-		li $a2, 0x1FF # Mode 0x1FF = 777 rwx rwx rwx
+abrirEsc:       la $a0, archScore #open nombre del archivo
+                li $a1, 0x102 # 0x109 = 0x100 Create + 0x8 Append + 0x1 Write
+                li $a2, 0x1FF # Mode 0x1FF = 777 rwx rwx rwx
 
-		li $v0, 13 #open
-		syscall
+                li $v0, 13 #open
+                syscall
 
-		move $t0, $v0
-		bgt  $v0, $zero, escribir  # si lo consigui escribir
+                move $t0, $v0
+                bgt  $v0, $zero, escribir  # si lo consigui escribir
 
-		la	$a0, archScore    ## open nombre del archivo
-		li	$a1, 0x41C2   ##  41C2 Permite la cracion del archivo 
-		li	$a2, 0x1FF    ##  Mode 0x1FF = 777 rwx rwx rwx
+                la      $a0, archScore    ## open nombre del archivo
+                li      $a1, 0x41C2   ##  41C2 Permite la cracion del archivo 
+                li      $a2, 0x1FF    ##  Mode 0x1FF = 777 rwx rwx rwx
 
-		li $v0, 13			# open syscall
-		syscall
+                li $v0, 13                      # open syscall
+                syscall
 
-		move	$a0, $v0
-		li $v0, 16			# close
-		syscall
+                move    $a0, $v0
+                li $v0, 16                      # close
+                syscall
 
-        	b abrirEsc
+                b abrirEsc
 
-escribir:	
-		la $s6, dummy
+escribir:       
+                la $s6, dummy
 
-		move	$a0, $t0 #le pasas el nombre del archivo
+                move    $a0, $t0 #le pasas el nombre del archivo
 
-		sb $t1, 0($s6)
-	
-		la $a1, dummy
-		li $a2, 2        # Max nummero de bytes a escribir
- 		li $v0, 15			# write
- 		syscall
+                sb $t1, 0($s6)
 
-		move	$a0, $t0
-		la $t8, nombre
+                la $a1, dummy
+                li $a2, 2        # Max nummero de bytes a escribir
+                li $v0, 15                      # write
+                syscall
 
-	move $s7, $zero
+                move    $a0, $t0
+                la $t8, nombre
+
+        move $s7, $zero
 
 #
-# creo que no hace falta esto de contar por que ya deberia estar listo en el formato que esta
-# dentro de los espacios esos de memoria, aunque puede ser que si les tengamos que hacer eso para evitar
+# creo que no hace falta esto de contar por que ya deberia estar listo en el
+formato que esta
+# dentro de los espacios esos de memoria, aunque puede ser que si les tengamos
+que hacer eso para evitar
 # problemas con el /n
 #
 
-contar:	lb $t4, 0($t8)
-	beq $t4, 0xa, sali # me calcula el espacio exacto de la palabra
-	beq $t4, $zero sali # para no usar espacio de mas y que escriba bien
-	addi $s7, $s7, 1
-	addi $t8, $t8, 1
-	b contar
+contar: lb $t4, 0($t8)
+        beq $t4, 0xa, sali # me calcula el espacio exacto de la palabra
+        beq $t4, $zero sali # para no usar espacio de mas y que escriba bien
+        addi $s7, $s7, 1
+        addi $t8, $t8, 1
+        b contar
 
-sali:	
-	
-	la $a1, nombre
-	move $a2, $s7        # Max nummero de bytes a escribir
- 	li $v0, 15			# write
- 	syscall
+sali:   
 
-	la $a1, linea
-	li $a2, 2        # Max nummero de bytes a escribir
- 	li $v0, 15			# write
- 	syscall
-	
-	la $t8, array
+        la $a1, nombre
+        move $a2, $s7        # Max nummero de bytes a escribir
+        li $v0, 15                      # write
+        syscall
 
-	move $s7, $zero
+        la $a1, linea
+        li $a2, 2        # Max nummero de bytes a escribir
+        li $v0, 15                      # write
+        syscall
 
-#contat:	lb $t4, 0($t8)
-#	beq $t4, 0xa, sali2 # me calcula el espacio exacto de la palabra
-#	beq $t4, $zero sali2 # para no usar espacio de mas y que escriba bien
-#	addi $s7, $s7, 1
-#	addi $t8, $t8, 1
-#	b contat
+        la $t8, array
 
-sali2:	
-	la $a1, array
-	li $a2, 10        # Max nummero de bytes a escribir
- 	li $v0, 15			# write
- 	syscall
-	
-	addi $t8, $t8, 10
-	
-	move $a1, $t8 
-	li $a2, 10        # Max nummero de bytes a escribir
- 	li $v0, 15			# write
- 	syscall
-	
-	li $v0, 10
-	syscall
+        move $s7, $zero
 
-########################################################################################
-	
-HS:	la $a0, linea
-	li $v0, 4
-	syscall
-	
-	la $a0, array
-	li $v0, 4
-	syscall
+#contat:        lb $t4, 0($t8)
+#       beq $t4, 0xa, sali2 # me calcula el espacio exacto de la palabra
+#       beq $t4, $zero sali2 # para no usar espacio de mas y que escriba bien
+#       addi $s7, $s7, 1
+#       addi $t8, $t8, 1
+#       b contat
 
-	la $a0, linea
-	li $v0, 4
-	syscall
+sali2:  
+        la $a1, array
+        li $a2, 10        # Max nummero de bytes a escribir
+        li $v0, 15                      # write
+        syscall
 
-	beq $s1, 0, finHS
-	la $a0, leIn
-	li $v0, 4
-	syscall
+        addi $t8, $t8, 10
+
+        move $a1, $t8 
+        li $a2, 10        # Max nummero de bytes a escribir
+        li $v0, 15                      # write
+        syscall
+
+        li $v0, 10
+        syscall
+
+################################################################################
+########
+
+HS:     la $a0, linea
+        li $v0, 4
+        syscall
+
+        la $a0, array
+        li $v0, 4
+        syscall
+
+        la $a0, linea
+        li $v0, 4
+        syscall
+
+        beq $s1, 0, finHS
+        la $a0, leIn
+        li $v0, 4
+        syscall
 
 finHS: b leerC
