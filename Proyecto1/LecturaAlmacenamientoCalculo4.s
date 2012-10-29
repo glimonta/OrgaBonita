@@ -56,6 +56,7 @@ negro:          .asciiz "N "
 ninguno:        .asciiz "X "
 preguntaFinal:  .asciiz "\nQuieres jugar otra vez? :D (y/n)\n"
 preguntaNombre: .asciiz "Como te llamas? \n"
+default:        .asciiz "0 \n"
 buf:            .space 32
 numInt:         .space 8
 numCod:         .space 8
@@ -238,15 +239,57 @@ finLec: la $a0,finDeArch        #imprimo mensaje de que lei el archivo
 
 cargaHS:
         la $a0, archScore       #guardamos el nombre del archivo en a0
-        li $v0, 13              #indicamos que abrire
+        li $v0, 13              #indicamos que abriremos
         li $a1, 0x0             #indicamos que solo será para lectura
         syscall
 
         move $t0, $v0           #guardamos el file descriptor en t0
-        la $t2, prim            #cargamos la direccion de prim en t2
+        bgt $v0, $zero, inter1  #si conseguimos el archivo nos vamos a inter1
+        
+        la $a0, archScore       #indicamos el nombre del archivo
+        li $a1, 0x41c2          #41c2 permite la creacion del archivo
+        li $a2, 0x1FF           #Mode 0x1FF = 777 rwx rwx rwx
+        
+        li $v0, 13              #indicamos que abriremos
+        syscall
+        
+        move $t0, $v0
+        
+        #############################
+        # A PARTIR DE AQUI LUIS OK? #
+        #############################
+        
+        
+        #Aqui procederemos a inicializar las puntuaciones maximas en cero
+        #ya que es la primera vez que se juega y el archivo score.txt 
+        #no existe.
+        
+        la $a1, default         #indicamos que escribiremos lo que hay en
+                                #default en el archivo
+        li $a2, 3               #indicamos el maximo de bytes a escribir
+        li $v0, 15              #indicamos que escribiremos
+        syscall
+        
+        la $a1, default         #indicamos que escribiremos lo que hay en
+                                #default en el archivo
+        li $a2, 3               #indicamos el maximo de bytes a escribir
+        li $v0, 15              #indicamos que escribiremos
+        syscall
+        
+        la $a1, default         #indicamos que escribiremos lo que hay en
+                                #default en el archivo
+        li $a2, 3               #indicamos el maximo de bytes a escribir
+        li $v0, 15              #indicamos que escribiremos
+        syscall
+        
+        move $a0, $t0           #movemos el file descriptor a a0
+        li $v0, 16              #indicamos que cerraremos
+        syscall
+        
+inter1: la $t2, prim            #cargamos la direccion de prim en t2
         
 read1:  move $a0, $t0           #movemos el file descriptor a a0
-        la $a1, buf2             #indicamos la direccion de buffer
+        la $a1, buf2            #indicamos la direccion de buffer
         li $a2, 1               #indicamos que leeremos un byte
         li $v0, 14              #indicamos que vamos a leer
         syscall
@@ -832,7 +875,7 @@ sobreescribir1c: lb $t3, 0($t5)         #cargamos en t3 el byte actual
                 addi $t5, $t5, 1        #nos movemos 1 byte en nuev
                 addi $t4, $t4, 1        #nos movemos 1 byte en prim
                 
-                bnez $t6, sobreescribir1c
+                bnez $t3, sobreescribir1c
         
 abrirEsc:       la $a0, archScore #open nombre del archivo
                 li $a1, 0x102 # 0x109 = 0x100 Create + 0x8 Append + 0x1 Write
@@ -842,20 +885,6 @@ abrirEsc:       la $a0, archScore #open nombre del archivo
                 syscall
 
                 move $t0, $v0
-                bgt  $v0, $zero, escribir1  # si lo consigui escribir
-                
-                la	$a0, archScore    ## open nombre del archivo
-                li	$a1, 0x41C2   ##  41C2 Permite la cracion del archivo 
-                li	$a2, 0x1FF    ##  Mode 0x1FF = 777 rwx rwx rwx
-
-                li $v0, 13			# open syscall
-                syscall
-
-                move	$a0, $v0
-                li $v0, 16			# close
-                syscall
-
-                b abrirEsc
 
 escribir1:      move $a0, $t0        #le pasas el nombre del archivo
 
