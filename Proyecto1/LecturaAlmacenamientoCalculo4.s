@@ -252,7 +252,16 @@ cargaHS:
         
         li $v0, 13              #indicamos que abriremos
         syscall
-        
+
+#############################################################################
+	
+	la	$a0, archScore     # open nombre del archivo
+	li	$a1, 0x102	   ##  (flags are 0: read, 1: write) 0x109 = 0x100 Create + 0x8 Append + 0x1 Write
+	li	$a2, 0x1FF	   ##  Mode 0x1FF = 777 rwx rwx rwx
+
+	li $v0, 13			# open syscall
+	syscall
+
         move $t0, $v0
         
         #############################
@@ -263,7 +272,9 @@ cargaHS:
         #Aqui procederemos a inicializar las puntuaciones maximas en cero
         #ya que es la primera vez que se juega y el archivo score.txt 
         #no existe.
-        
+
+	move $a0, $t0
+	
         la $a1, default         #indicamos que escribiremos lo que hay en
                                 #default en el archivo
         li $a2, 3               #indicamos el maximo de bytes a escribir
