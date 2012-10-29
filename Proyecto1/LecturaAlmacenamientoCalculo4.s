@@ -297,6 +297,15 @@ cargaHS:
         li $v0, 16              #indicamos que cerraremos
         syscall
         
+        #abrimos nuevamente el archivo para leerlo
+        
+        la $a0, archScore       #guardamos el nombre del archivo en a0
+        li $v0, 13              #indicamos que abriremos
+        li $a1, 0x0             #indicamos que solo será para lectura
+        syscall
+        
+        move $t0, $v0           #movemos el file descriptor a t0
+        
 inter1: la $t2, prim            #cargamos la direccion de prim en t2
         
 read1:  move $a0, $t0           #movemos el file descriptor a a0
