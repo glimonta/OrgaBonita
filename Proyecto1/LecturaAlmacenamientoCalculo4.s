@@ -403,8 +403,8 @@ inic:   lb $t7, numInt          #cargamos el max de intentos en t7
         la $a0, nombre          #imprimimos el nombre del jugador
         li $v0, 4
         syscall
-
-        li $t1, 0x30            #imprmimos que su puntuacion es cero
+	
+        li $t1, 0x30        #imprmimos que su puntuacion es cero
         move $a0, $t1
         li $v0, 11
         syscall
@@ -554,6 +554,7 @@ finCiclo:       blt $s2, 4, ciclo       #mientras no revisemos los 4 digitos
                 la $a0, linea           #imprimimos una linea
                 li $v0, 4
                 syscall
+
         
                 beq $s5, 4, reinic      #cuando la cantidad de aciertos es 4
                                         #nos vamos a reinic 
@@ -584,8 +585,9 @@ preg:   bne $s5, 4, noAdivino           #si la cantidad de aciertos no es 4 es
 
         beq $t8, $t7, enLaUltima        #si la cantidad de intentos es igual al
                                         #maximo es porque adivino en el ultimo
-                                        #intento solo se le otorga 1 punto
-                                 
+        				#intento solo se le otorga 1 punto       
+
+	
         add $t1, $t1, 2                 #de resto si adivino se le suman 2 ptos
         b noAdivino                     #nos vamos a noAdivino para imprimir
                                         #el nombre del jugador y su puntuacion
@@ -628,6 +630,7 @@ pregun: la $a0, preguntaFinal           #preguntamos si desea jugar de nuevo
 
 
 #usamos s2 como temporal y luego reiniciamos su valor
+	
 reinic: lw $s6, partida         #cargamos a s6 el numero de partida
         addi $s6, $s6, 1        #le sumamos uno
 
