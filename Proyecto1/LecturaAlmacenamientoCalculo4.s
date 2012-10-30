@@ -665,7 +665,9 @@ noAdivino:      la $a0, jugad           #imprimimos "Jugador: "
                 beq $s6, $s2, fin       #si el numero de codigos es igual al 
                                         #numero de partidas vamos a fin
         
-pregun: la $a0, preguntaFinal           #preguntamos si desea jugar de nuevo
+pregun:	li $t8, 1               #reiniciamos el contador de intentos a 1
+
+	la $a0, preguntaFinal           #preguntamos si desea jugar de nuevo
         li $v0, 4
         syscall
 
