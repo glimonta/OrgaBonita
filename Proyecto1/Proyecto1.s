@@ -7,6 +7,8 @@
 #
 # Luis Miranda
 # Carnet: 10-10463
+#
+# Nota: Este programa debe ser corrido en Linux
 # 
 # Planificacion de registros:
 #
