@@ -35,7 +35,6 @@
 # pun1, pun2 y pun3
 # s6: almacena el numero de partida
 # s7: almacena la direccion del codigo actual // contador de espacio
-# s8: file descriptor (write)
 
 .data
 
@@ -57,6 +56,8 @@ ninguno:        .asciiz "X "
 preguntaFinal:  .asciiz "\nQuieres jugar otra vez? :D (y/n)\n"
 preguntaNombre: .asciiz "Como te llamas? \n"
 default:        .asciiz "0 \n"
+highs:          .asciiz "HIGHSCORES: \n"
+mensajeFHS:     .asciiz "Puedes continuar adivinando ahora :D \n"
 buf:            .space 32
 numInt:         .space 8
 numCod:         .space 8
@@ -254,27 +255,23 @@ cargaHS:
         syscall
 
 #############################################################################
-	
-	la	$a0, archScore     # open nombre del archivo
-	li	$a1, 0x102	   ##  (flags are 0: read, 1: write) 0x109 = 0x100 Create + 0x8 Append + 0x1 Write
-	li	$a2, 0x1FF	   ##  Mode 0x1FF = 777 rwx rwx rwx
-
-	li $v0, 13			# open syscall
-	syscall
-
-        move $t0, $v0
         
-        #############################
-        # A PARTIR DE AQUI LUIS OK? #
-        #############################
-        
+        la $a0, archScore       # open nombre del archivo
+        li $a1, 0x102           #(flags are 0: read, 1: write) 0x109 = 0x100
+                                #Create + 0x8 Append + 0x1 Write
+        li $a2, 0x1FF           #Mode 0x1FF = 777 rwx rwx rwx
+
+        li $v0, 13              # open syscall
+        syscall
+
+        move $t0, $v0        
         
         #Aqui procederemos a inicializar las puntuaciones maximas en cero
         #ya que es la primera vez que se juega y el archivo score.txt 
         #no existe.
 
-	move $a0, $t0
-	
+        move $a0, $t0
+        
         la $a1, default         #indicamos que escribiremos lo que hay en
                                 #default en el archivo
         li $a2, 3               #indicamos el maximo de bytes a escribir
@@ -565,7 +562,7 @@ finCiclo:       blt $s2, 4, ciclo       #mientras no revisemos los 4 digitos
                 
                 move $s5, $zero         #reiniciamos la cantidad de aciertos
 
-                bgt $t8, $t7, fin       #si el numero de intento actual es
+                bgt $t8, $t7, pregun       #si el numero de intento actual es
                                         #mayor al maximo de intentos vamos a fin
 
                 #Limpiamos leIn
@@ -668,7 +665,7 @@ fin:    sw $t1, punN            #almacenamos en punN la puntuacion del jugador
         addi $t2, $t2, 2
         la $t5, nombre
         
-nuev0:   lb $t3, 0($t5)
+nuev0:  lb $t3, 0($t5)          
         sb $t3, 0($t2)
         
         addi $t5, $t5, 1
@@ -676,8 +673,8 @@ nuev0:   lb $t3, 0($t5)
         
         bnez $t3, nuev0
         
-        la $t5, nuev
-        la $s5, punN
+        la $t5, nuev            
+        la $s5, punN            
         move $t4, $zero
         
 cargarNuev:     lb $t3, 0($t5)
@@ -701,95 +698,120 @@ contCargarNuev: blt $t3, 0x30, ErrorLectura
                 
                 b cargarNuev
         
-intermedPrim:   la $t5, prim
-                la $s5, pun1
-                move $t4, $zero
+#################################################
+#                                               #
+#  aca estamos guardando en pun1, pun2 y pun3   #
+#  las puntuaciones que hay guardadas en mem    #
+#  de prim, seg y ter que son los highscores    #
+#  leidos del archivo de texto de highscores    #
+#                                               #
+#################################################
+
+
+
+intermedPrim:   la $t5, prim            #cargamos en t5 la direccion de prim
+                la $s5, pun1            #cargamos la direccion de pun1 en s5
+                move $t4, $zero         #reiniciamos el contador t4 a cero
         
-cargarPrim:     lb $t3, 0($t5)
-                sb $t3, 0($s5)
+cargarPrim:     lb $t3, 0($t5)          #cargamos el byte actual
+                sb $t3, 0($s5)          #guardamos en pun1 el byte actual
                 
-                addi $t4, $t4, 1
-                addi $t5, $t5, 1
-                addi $s5, $s5, 1
+                addi $t4, $t4, 1        #sumamos 1 al contador
+                addi $t5, $t5, 1        #nos movemos un byte en t5
+                addi $s5, $s5, 1        #nos movemos un byte en s5
                 
-                bne $t3, 0x20, contCargarPrim
+                bne $t3, 0x20, contCargarPrim   #si no llegamos a un espacio en
+                                                #blanco nos vamos a
+                                                #contCargarPrim
                 
-                la $t7, pun1
-                jal transf
+                la $t7, pun1    #en caso de que si lleguemos al espacio cargamos
+                                #la direccion de pun1 en t7
+                jal transf      #llamamos a la funcion transformar
                 
-                sw $s0, pun1
+                sw $s0, pun1    #guardamos pun1 el entero que nos retorna la
+                                #funcion en s0
                 
-                b intermedSeg
+                b intermedSeg   #nos vamos a intermedSeg
                 
-contCargarPrim: blt $t3, 0x30, ErrorLectura
-                bgt $t3, 0x39, ErrorLectura
+contCargarPrim: blt $t3, 0x30, ErrorLectura     #si no leimos un numero => ERROR
+                bgt $t3, 0x39, ErrorLectura     #si no leimos un numero => ERROR
                 
-                b cargarPrim
+                b cargarPrim    #regresamos al ciclo cargarPrim
                 
-intermedSeg:    la $t5, seg
-                la $s5, pun2
-                move $t4, $zero
+intermedSeg:    la $t5, seg     #cargamos en t5 la direccion de seg
+                la $s5, pun2    #cargamos en s5 la direccion de 
+                move $t4, $zero #reiniciamos el contador
                 
-cargarSeg:      lb $t3, 0($t5)
-                sb $t3, 0($s5)
+cargarSeg:      lb $t3, 0($t5)          #cargamos el byte actual
+                sb $t3, 0($s5)          #guardamos en pun2 el byte actual
                 
-                addi $t4, $t4, 1
-                addi $t5, $t5, 1
-                addi $s5, $s5, 1
+                addi $t4, $t4, 1        #sumamos 1 al contador
+                addi $t5, $t5, 1        #nos movemos 1 byte en t5
+                addi $s5, $s5, 1        #nos movemos 1 byte en s5
                 
-                bne $t3, 0x20, contCargarSeg
+                bne $t3, 0x20, contCargarSeg    #si aun no llegamos al espacio
+                                                #en blanco nos vamos a
+                                                #ContCargarSeg
                 
-                la $t7, pun2
-                jal transf
+                la $t7, pun2    #en caso de que si lleguemos al espacio cargamos
+                                #la direccion de pun2 en t7      
+                jal transf      #llamamos a la funcion transformar
                 
-                sw $s0, pun2
+                sw $s0, pun2    #guardamos en pun2 el entero que nos retorna la 
+                                #funcion en s0
                 
-                b intermedTer
+                b intermedTer   #nos vamos a intermedTer
 
-contCargarSeg:  blt $t3, 0x30, ErrorLectura
-                bgt $t3, 0x39, ErrorLectura
+contCargarSeg:  blt $t3, 0x30, ErrorLectura     #si no leimos un numero => ERROR
+                bgt $t3, 0x39, ErrorLectura     #si no leimos un numero => ERROR
                 
-                b cargarSeg
+                b cargarSeg     #regresamos al ciclo cargarSeg
                 
-intermedTer:    la $t5, ter
-                la $s5, pun3
-                move $t4, $zero
+intermedTer:    la $t5, ter             #cargamos la direccion de ter en t5
+                la $s5, pun3            #cargamos la direccion de pun3 en s5
+                move $t4, $zero         #reiniciamos el contador
                 
-cargarTer:      lb $t3, 0($t5)
-                sb $t3, 0($s5)
+cargarTer:      lb $t3, 0($t5)          #cargamos el byte actual
+                sb $t3, 0($s5)          #almacenamos en pun3 el byte actual
                 
-                addi $t4, $t4, 1
-                addi $t5, $t5, 1
-                addi $s5, $s5, 1
+                addi $t4, $t4, 1        #sumamos 1 al contador
+                addi $t5, $t5, 1        #nos movemos 1 byte en t5
+                addi $s5, $s5, 1        #nos movemos 1 byte en s5
                 
-                bne $t3, 0x20, contCargarTer
+                bne $t3, 0x20, contCargarTer    #si aun no llegamos al espacio
+                                                #en blanco nos vamos a
+                                                #ContCargarTer
                 
-                la $t7, pun3
-                jal transf
+                la $t7, pun3    #en caso de que si lleguemos al espacio cargamos
+                                #la direccion de pun3 en t7 
+                jal transf      #llamamos a la funcion transformar
                 
-                sw $s0, pun3
+                sw $s0, pun3    #guardamos en pun3 el entero que nos retorna la 
+                                #funcion en s0
                 
-                b comparar
+                b comparar      #nos vamos a comparar
 
-contCargarTer:  blt $t3, 0x30, ErrorLectura
-                bgt $t3, 0x39, ErrorLectura
+contCargarTer:  blt $t3, 0x30, ErrorLectura     #si no leimos un numero => ERROR
+                bgt $t3, 0x39, ErrorLectura     #si no leimos un numero => ERROR
                 
-                b cargarTer
+                b cargarTer     #regresamos al ciclo cargarTer
                 
 #aca reutilizamos t4 y t5 para comparar los numeros.
                 
-comparar:       lw $t5, punN
+comparar:       lw $t5, punN            #cargamos en t5 la puntuacion nueva
 
-                lw $t4, pun1
-                bgt $t5, $t4, escrib1a
+                lw $t4, pun1            #cargamos en t4 la puntuacion 1
+                bgt $t5, $t4, escrib1a  #si es mayor la nueva vamos a escrib1a
                 
-                lw $t4, pun2
-                bgt $t5, $t4, escrib2a
+                lw $t4, pun2            #cargamos en t4 la puntuacion 2
+                bgt $t5, $t4, escrib2a  #si es mayor la nueva vamos a escrib2a
                 
-                lw $t4, pun3
-                bgt $t5, $t4, escrib3
+                lw $t4, pun3            #cargamos en t4 la puntuacion 3
+                bgt $t5, $t4, escrib3   #si la nueva es mayor vamos a escrib3a
                 
-                b abrirEsc
+                b abrirEsc              #si no pasa nada de lo anterior vamos
+                                        #directamente a escribir el archivo de
+                                        #los highscores
                 
 escrib3:        la $t5, nuev            #cargamos la direccion de nuev en t5
                 la $t4, ter             #cargamos la direccion de ter en t4
@@ -897,114 +919,88 @@ sobreescribir1c: lb $t3, 0($t5)         #cargamos en t3 el byte actual
                 
                 bnez $t3, sobreescribir1c
         
-abrirEsc:       la $a0, archScore #open nombre del archivo
-                li $a1, 0x102 # 0x109 = 0x100 Create + 0x8 Append + 0x1 Write
-                li $a2, 0x1FF # Mode 0x1FF = 777 rwx rwx rwx
-
-                li $v0, 13 #open
+abrirEsc:       la $a0, archScore       #open nombre del archivo
+                li $a1, 0x102           # 0x109 = 0x100 Create + 0x8 Append +
+                                        # 0x1 Write
+                li $a2, 0x1FF           # Mode 0x1FF = 777 rwx rwx rwx
+                li $v0, 13              #indicamos que vamos a abrir
                 syscall
 
                 move $t0, $v0
 
-escribir1:      move $a0, $t0        #le pasas el nombre del archivo
+escribir1:      move $a0, $t0           #movemos el file descriptor a a0
 
-		la $t8, prim
-		move $s7, $zero
-		jal contat
-	
-                la $a1, prim
-                move $a2, $s7              # Max nummero de bytes a escribir
-                li $v0, 15              # write
+                la $t8, prim            #cargamos en t8 prim
+                move $s7, $zero         #inicializamos s7 en cero
+                jal contat              #llamamos a contat que nos calcula el
+                                        #espacio exacto que debe utilizar para
+                                        #escribir la palabra
+        
+                la $a1, prim            #cargamos la direccion de lo que
+                                        #imprimiremos en a1
+                move $a2, $s7           #max nummero de bytes a escribir
+                li $v0, 15              #indicamos que vamos a escribir
                 syscall
                 
-escribir2:	la $t8, seg
-		move $s7, $zero
-		jal contat
+escribir2:      la $t8, seg             #cargamos en t8 seg
+                move $s7, $zero         #inicializamos s7 en cero
+                jal contat              #llamamos a contat que nos calcula
+                                        #el espacio exacto que debe utilizar
+                                        #para escribir la palabra
 
-		la $a1, seg
-		move $a2, $s7
-                li $v0, 15
+                la $a1, seg             #cargamos la direccion de lo que 
+                                        #imprimiremos en a1
+                move $a2, $s7           #max numero de bytes a escribir
+                li $v0, 15              #indicamos que vamos a escribir
                 syscall
                 
-escribir3:	la $t8, seg
-		move $s7, $zero
-		jal contat
-	
-		la $a1, ter
-		move $a2, $s7
-		li $v0, 15
+escribir3:      la $t8, seg             #cargamos en t8 ter
+                move $s7, $zero         #inicializamos s7 en cero
+                jal contat              #llamamos a contat que nos calcula 
+                                        #el espacio exaco que debe utilizar para
+                                        #escribir la palabra
+        
+                la $a1, ter             #cargamos la direccion de lo que 
+                                        #imprimiremos en a1
+                move $a2, $s7           #max numero de bytes a imprimir
+                li $v0, 15              #indicamos que vamos a escribir
                 syscall
 
-                move $a0, $t0
-                la $t8, nombre
-
-                move $s7, $zero
-
-#
-# creo que no hace falta esto de contar por que ya deberia estar listo en el formato que esta
-# dentro de los espacios esos de memoria, aunque puede ser que si les tengamos que hacer eso para evitar
-# problemas con el /n
-#
-
-#contar: lb $t4, 0($t8)
-#        beq $t4, 0xa, sali # me calcula el espacio exacto de la palabra
-#        beq $t4, $zero sali # para no usar espacio de mas y que escriba bien
-#        addi $s7, $s7, 1
-#        addi $t8, $t8, 1
-#        b contar
-
-#sali:   
-        
-#        la $a1, nombre
-#        move $a2, $s7   # Max nummero de bytes a escribir
-#        li $v0, 15      # write
-#        syscall
-
-#        la $a1, linea
-#        li $a2, 2       # Max nummero de bytes a escribir
-#        li $v0, 15      # write
-#        syscall
-        
-#        la $t8, array
-
-#        move $s7, $zero
-
-#sali2:  
-#        la $a1, array
-#        li $a2, 10      # Max nummero de bytes a escribir
-#        li $v0, 15      # write
-#        syscall
-        
-#        addi $t8, $t8, 10
-#        
-#        move $a1, $t8 
-#        li $a2, 10      # Max nummero de bytes a escribir
-#        li $v0, 15      # write
-#        syscall
-        
-        li $v0, 10
-        syscall
+seAcabo:        li $v0, 10
+                syscall
 
 ########################################################################################
         
-HS:     la $a0, linea
+HS:     la $a0, linea           #imprimimos una linea
         li $v0, 4
         syscall
         
-        la $a0, array
+        la $a0, highs           #imprimimos mensaje highs
+        li $v0, 4
+        syscall 
+        
+        la $a0, prim            #imprimimos el primer highscore
+        li $v0, 4
+        syscall
+        
+        la $a0, seg             #imprimimos el segundo highscore
         li $v0, 4
         syscall
 
-        la $a0, linea
+        la $a0, ter             #imprimimos el tercer highscore
+        li $v0, 4
+        syscall
+        
+        la $a0, linea           #imprimimos una linea
+        li $v0, 4
+        syscall
+        
+        la $a0, mensajeFHS      #imprimimos el mensajeFHS
         li $v0, 4
         syscall
 
-        beq $s1, 0, finHS
-        la $a0, leIn
-        li $v0, 4
-        syscall
-
-finHS: b leerC
+        b leerC                 #regresamos a leerC
+                                
 
 ######################################################
 #                                                    #
@@ -1057,13 +1053,22 @@ tresDigitos:    lb $s4, 0($t7)          #cargamos el primer byte del numero
                 add $s3, $s3, $s4       #sumamos decenas y centenas
                 add $s0, $s0, $s3       #ahora se lo sumamos a las unidades
                 
-                jr $ra
+                jr $ra                  
 
-contat:	lb $t4, 0($t8)
-	beq $t4, 0xa, sali2 # me calcula el espacio exacto de la palabra
-	beq $t4, $zero sali2 # para no usar espacio de mas y que escriba bien
-	addi $s7, $s7, 1
-	addi $t8, $t8, 1
-	b contat
-sali2:	addi $s7, $s7, 1
-	jr $ra
+#########################################
+#                                       #
+# contat nos calcula el espacio exacto  #
+# que ocupa la palabra para que escriba #
+# correctamente en el archivo.          #
+#                                       #
+#########################################
+                
+contat: lb $t4, 0($t8)          #cargo en t4 el byte actual
+        beq $t4, 0xa, sali2     #si es un salto de linea vamos a sali2
+        beq $t4, $zero sali2    #si es un cero vamos a sali2
+        addi $s7, $s7, 1        #sino sumamos 1 al numero de espacios
+        addi $t8, $t8, 1        #nos movemos 1 byte en la direccion de t8
+        b contat                #ciclo
+        
+sali2:  addi $s7, $s7, 1        #sumamos uno al numero de espacios
+        jr $ra                  #y regresamos
