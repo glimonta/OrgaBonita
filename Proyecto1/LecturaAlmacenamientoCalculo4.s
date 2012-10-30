@@ -58,6 +58,9 @@ preguntaNombre: .asciiz "Como te llamas? \n"
 default:        .asciiz "0 \n"
 highs:          .asciiz "HIGHSCORES: \n"
 mensajeFHS:     .asciiz "Puedes continuar adivinando ahora :D \n"
+puntu:          .asciiz "Puntuacion: "
+jugad:          .asciiz "Jugador: "
+cero:           .asciiz "0"
 buf:            .space 32
 numInt:         .space 8
 numCod:         .space 8
@@ -71,7 +74,7 @@ nuev:           .space 14
 pun1:           .word 0
 pun2:           .word 0
 pun3:           .word 0
-punN:           .word 0
+punN:           .space 2
 buf2:           .space 2
 dummy:          .asciiz "  "
                 .align 4
@@ -404,8 +407,11 @@ inic:   lb $t7, numInt          #cargamos el max de intentos en t7
         li $v0, 4
         syscall
 
-        li $t1, 0x30            #imprmimos que su puntuacion es cero
-        move $a0, $t1
+        la $t1, punN            #inicializamos la puntuacion en cero
+        lb $t6, cero
+        sb $t6, 0($t1)
+        sb $t6, 1($t1)
+        li $a0, 0x30            #imprimimos que su puntuacion es cero 
         li $v0, 11
         syscall
 
@@ -585,19 +591,70 @@ preg:   bne $s5, 4, noAdivino           #si la cantidad de aciertos no es 4 es
         beq $t8, $t7, enLaUltima        #si la cantidad de intentos es igual al
                                         #maximo es porque adivino en el ultimo
                                         #intento solo se le otorga 1 punto
-                                 
-        add $t1, $t1, 2                 #de resto si adivino se le suman 2 ptos
+        
+        la $t1, punN                    #cargo la direccion de punN en t1
+        lb $t2, 0($t1)                  #cargo en t2 el byte de las decenas
+        lb $t3, 1($t1)                  #cargo en t3 el byte de las unidades
+        
+        beq $t3, 0x39, casoBorde        #si llegamos al caso donde las unidades
+                                        #son 9 vamos a casoBorde
+        beq $t3, 0x38, casoBorde2       #si llegamos al caso donde las unidades
+                                        #son 8 vamos a casoBorde2
+        
+        add $t3, $t3, 2                 #de resto si adivino y no esta en esos
+                                        #dos casos anteriores se le suman 2 ptos
+                                        #a las unidades
+        sb $t3, 1($t1)                  #almacenamos en memoria
+        
         b noAdivino                     #nos vamos a noAdivino para imprimir
                                         #el nombre del jugador y su puntuacion
         
-enLaUltima:     add $t1, $t1, 1         #sumamos el punto correspondiente
+casoBorde:      addi $t2, $t2, 1        #aumentamos en 1 las decenas 
+                li $t3, 0x31            #cargamos en las unidades el 1
+                sb $t2, 0($t1)          #almacenamos en memoria
+                sb $t3, 1($t1)
+                b noAdivino             #vamos a noAdivino para imprimir el
+                                        #nombre del jugador y su puntuacion
+                
+casoBorde2:     addi $t2, $t2, 1        #aumentamos en 1 las decenas
+                li $t3, 0x30            #cargamos en las unidades el 0
+                sb $t2, 0($t1)          #almacenamos en memoria
+                sb $t3, 1($t1)
+                b noAdivino             #vamos a noAdivino para imprimir el 
+                                        #nombre del jugador y su puntuacion
+        
+enLaUltima:     la $t1, punN            #cargo la direccion de punN en t1
+                lb $t2, 0($t1)          #cargo en t2 el byte de las decenas
+                lb $t3, 1($t1)          #cargo en t3 el byte de las unidades
 
-noAdivino:      la $a0, nombre          #imprimimos el nombre del jugador
+                beq $t3, 0x39, casoBorde3       #si las unidades son 1 nos vamos
+                                                #al casoBorde3
+                                        
+                                        #si no ocurre esto lo que hacemos es que
+                add $t3, $t3, 1         #sumamos el punto correspondiente
+                sb $t3, 1($t1)          #almacenamos en memoria
+                b noAdivino             #vamos a noAdivino para imprimir el
+                                        #nombre del jugador y su puntuacion
+                        
+casoBorde3:     addi $t2, $t2, 1        #sumamos 1 a las decenas
+                li $t3, 0x30            #cargamos cero en las unidades
+                sb $t2, 0($t1)          #almacenamos en memoria
+                sb $t3, 1($t1)
+                
+noAdivino:      la $a0, jugad           #imprimimos "Jugador: "
                 li $v0, 4
                 syscall
-        
-                move $a0, $t1           #imprimimos la puntuacion
-                li $v0, 11
+
+                la $a0, nombre          #imprimimos el nombre del jugador
+                li $v0, 4
+                syscall
+                
+                la $a0, puntu           #imprimimos "Puntuacion: "
+                li $v0, 4
+                syscall
+                
+                la $a0, punN            #imprimimos la puntuacion
+                li $v0, 4
                 syscall
                 
                 lb $s2, numCod          #cargamos el numero de codigos en t2
@@ -655,14 +712,16 @@ reinic: lw $s6, partida         #cargamos a s6 el numero de partida
 #################################################################
       
       
-fin:    sw $t1, punN            #almacenamos en punN la puntuacion del jugador
-                                #actual
-                                
+fin:    la $t1, punN
+        lb $s2, 0($t1)
+        lb $s3, 1($t1)
+        
         lb $s1, espacio
         la $t2, nuev
-        sb $t1, 0($t2)
-        sb $s1, 1($t2)
-        addi $t2, $t2, 2
+        sb $s2, 0($t2)
+        sb $s3, 1($t2)
+        sb $s1, 2($t2)
+        addi $t2, $t2, 3
         la $t5, nombre
         
 nuev0:  lb $t3, 0($t5)          
