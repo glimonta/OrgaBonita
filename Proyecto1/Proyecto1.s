@@ -587,7 +587,7 @@ finCiclo:       blt $s2, 4, ciclo       #mientras no revisemos los 4 digitos
                 
                 move $s5, $zero         #reiniciamos la cantidad de aciertos
 
-                bgt $t8, $t7, pregun       #si el numero de intento actual es
+                bgt $t8, $t7, reinic       #si el numero de intento actual es
                                         #mayor al maximo de intentos vamos a fin
 
                 #Limpiamos leIn
@@ -675,6 +675,14 @@ noAdivino:      la $a0, jugad           #imprimimos "Jugador: "
                 la $a0, punN            #imprimimos la puntuacion
                 li $v0, 4
                 syscall
+
+		la $a0, linea
+		li $v0, 4
+		syscall
+	
+		la $a0, codAct
+		li $v0, 4
+		syscall
 
                 li $t8, 1               #reiniciamos el contador de intentos a 1
                 
