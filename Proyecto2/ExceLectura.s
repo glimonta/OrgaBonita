@@ -5,7 +5,7 @@
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
-modification,
+# modification,
 # are permitted provided that the following conditions are met:
 #
 # Redistributions of source code must retain the above copyright notice,
@@ -13,13 +13,13 @@ modification,
 #
 # Redistributions in binary form must reproduce the above copyright notice,
 # this list of conditions and the following disclaimer in the documentation
-and/or
+# and/or
 # other materials provided with the distribution.
 #
 # Neither the name of the James R. Larus nor the names of its contributors may
-be
+# be
 # used to endorse or promote products derived from this software without
-specific
+# specific
 # prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -28,12 +28,12 @@ specific
 # ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
 # LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 # CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE
+# SUBSTITUTE
 # GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
 # HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
-DAMAGE.
+# DAMAGE.
 #
 
 # Define the exception handling code.  This must go first!
@@ -74,11 +74,11 @@ __e29_: .asciiz ""
 __e30_: .asciiz "  [Cache]"
 __e31_: .asciiz ""
 __excp: .word __e0_, __e1_, __e2_, __e3_, __e4_, __e5_, __e6_, __e7_, __e8_,
-__e9_
+        .word __e9_
         .word __e10_, __e11_, __e12_, __e13_, __e14_, __e15_, __e16_, __e17_,
-__e18_,
+        .word __e18_,
         .word __e19_, __e20_, __e21_, __e22_, __e23_, __e24_, __e25_, __e26_,
-__e27_,
+        .word __e27_,
         .word __e28_, __e29_, __e30_, __e31_
 s1:     .word 0
 s2:     .word 0
@@ -213,6 +213,11 @@ lectura:        la $a0, def
                 syscall
                 
                 sw $v0, tab
+                lw $t3, tab
+                move $t4, $zero
+                move $t5, $zero
+                move $t7, $zero         #contador de "a"
+                move $t8, $zero         #contador de "*"
                 
 leer:   move $a0, $t0
         la $a1, buf
@@ -220,15 +225,61 @@ leer:   move $a0, $t0
         li $v0, 14
         syscall
         
-        blez $v0, fin
+        blez $v0, bleh
         
         la $a0, buf
+        beq $a0, 0xa, leer
         li $v0, 4
         syscall
         
-        lb $t2 0($a0)
-        sb 
+        lb $t2, 0($a0)
+        #beq $t2, 0xa, leer
+        beq $t2, 0xd, leer
+        beq $t2, 0x61, sumA
+        beq $t2, 0x2a, sumC
+        sb $t2, 0($t3)
+        addi $t3, $t3, 1
+        addi $t4, $t4, 1
+        beq $t4, 4, masEsp
+        
+        b leer
+        
+sumA:   addi $t7, $t7,1
+        sb $t2, 0($t3)
+        addi $t3, $t3, 1
+        addi $t4, $t4, 1
+        beq $t4, 4, masEsp
+        
+        b leer
+        
+sumC:   addi $t8, $t8,1
+        sb $t2, 0($t3)
+        addi $t3, $t3, 1
+        addi $t4, $t4, 1
+        beq $t4, 4, masEsp
+        
+        b leer
+        
+masEsp: li $v0, 9
+        li $a0, 4
+        syscall
+        
+        move $t4, $zero
+        move $t3, $v0
+        
+        b leer
+        
+bleh:   lw $t5, tab
 
+imprimir:       lb $a0, 0($t5)
+                beqz $a0, bleh2
+                li $v0, 11
+                syscall
+                
+                addi $t5, $t5, 1
+                b imprimir
+        
+bleh2:
 ###################################################################
         jal main
         nop
