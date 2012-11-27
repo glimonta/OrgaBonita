@@ -1,5 +1,5 @@
 		.kdata
-m1:		.asciiz "\nxxxxxxxx\nxaaaaaax\nxaaxx<ax\nxaaaaaax\nxxxxxxxx\n"
+m1:		.asciiz "\nxxxxxxxx\nxaaaaaax\nxaaxx$ax\nxaaaaaax\nxxxxxxxx\n"
 exp:		.asciiz "\n"
 new_line: 	.asciiz "\n\n\n\n"
 direccion:	.word 0
@@ -87,7 +87,18 @@ print:	#ori $k0 0x0010
 
 ##################################################################
 	
-display:lw $a0 direccion
+display:
+	la $a0 dummy
+	li $v0 4
+	syscall
+	la $a0 exp
+	li $v0 4
+	syscall
+	la $a0 exp
+	li $v0 4
+	syscall
+
+	lw $a0 direccion
 	move $a1 $t5
 	la $a2 m1
 	lw $a3 tamano
@@ -107,7 +118,16 @@ display:lw $a0 direccion
 	lw $v0 16($sp)
 	addi $sp $sp 16
 	addi $fp $sp 16
-	
+
+	la $a0 dummy
+	li $v0 4
+	syscall
+	la $a0 exp
+	li $v0 4
+	syscall
+	la $a0 exp
+	li $v0 4
+	syscall
 	
 	li $v0,4
 	la $a0, m1
@@ -153,10 +173,6 @@ end:	lw $v0 s1		# Restore other registers
 # t1 = lo que esta en destino
 #
 mover:
-	li $t0 0
-	lb $t0 0($a1)
-	lb $t4 1($a1)
-	sb $t0 dummy
 
 	la $t2 dummy
 	li $t5 1
@@ -187,10 +203,11 @@ arr:
 
 	li $t5 0x78	
 	beq $t1 $t5 k
-	
-	li $t0 0x56
-	li $t6 0x6F
 
+	lb $t6 0($t2)
+
+	li $t0 0x24
+	
 	sb $t1 0($t2)
 	sb $t0 0($t3)
 	sb $t6 0($a1)	
@@ -200,66 +217,58 @@ arr:
 	b k
 	
 baj:
-
-	lb $t0 0($t2)
-
 	add $t3 $a1 $a3
 	
 	lb $t1 0($t3)
 
 	li $t5 0x78	
 	beq $t1 $t5 k
+
+	lb $t6 0($t2)
 	
+	li $t0 0x24
+
 	sb $t1 0($t2)
-
-	bne $t4 $t5 fbaj
-	li $t0 0x56
-	b bajo
-fbaj:	lb $t0 0($t2)
-
-bajo:	sb $t1 0($t2)
-	li $t0 0x5E
 	sb $t0 0($t3)
+	sb $t6 0($a1)
 	
 	move $v0 $t3 
-	li $t0 0x6F
-	sb $t0 0($a1)
+
 	b k
 
 der:
-
-	lb $t0 0($t2)
-
+	lb $t6 0($t2)
 	lb $t1 1($a1)
 
 	li $t5 0x78	
 	beq $t1 $t5 k
 	
-	sb $t1 1($t2)
+	sb $t1 0($t2)
 
-	li $t0 0x3C
+	li $t0 0x24
 	sb $t0 1($a1)
 	
 	addi $v0 $a1 1
-	li $t0 0x6F
-	sb $t0 0($a1)
+
+	sb $t6 0($a1)
 	b k
 
 izq:
 
-	lb $t0 0($t2)
+	lb $t6 0($t2)
 	lb $t1 -1($a1)
 
 	li $t5 0x78	
 	beq $t1 $t5 k
 
-	sb $t1 1($t2)
+	sb $t1 0($t2)
 
-	li $t0 0x3E
+	li $t0 0x24
 	sb $t0 -1($a1)
+
 	addi $v0 $a1 -1
-	li $t0 0x6F
-	sb $t0 0($a1)
+
+	sb $t6 0($a1)
 	
 k:	li $a0 0
 	sw $a0 direccion
