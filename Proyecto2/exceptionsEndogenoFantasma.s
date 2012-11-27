@@ -1,8 +1,8 @@
 		.kdata
-m1:		.asciiz "\nxxxxxxxx\nxaaaaaax\nxaaxx$ax\nxaaaaaax\nxxxxxxxx\n"
+m1:		.asciiz "\nxxxxxxxx\nxaaaxaax\nxaaaa$ax\nxaaxaaax\nxxxxxxxx\n"
 exp:		.asciiz "\n"
 new_line: 	.asciiz "\n\n\n\n"
-direccion:	.word 0
+direccion:	.word 1
 tamano:		.word 9
 up:	.word 119 # w
 down:	.word 115 # s
@@ -12,6 +12,11 @@ s1:	.word 0
 s2:	.word 0
 ra:	.word 0
 dummy:	.ascii "a "
+
+valores:	.word 1,2,4,8
+inicio:		.word 0, 0, 0 ,0 	
+seed1:       .word   0x10111001
+seed2:       .word   0x10111001
 
 #
 # $t5 => pacman
@@ -30,6 +35,10 @@ dummy:	.ascii "a "
 	srl $a0 $k0 2		# Extract ExcCode Field
 	andi $a0 $a0 0x1f
 
+##################################################################
+
+
+	
 ###################################################################
 	
 	lui $t0 0xFFFF
@@ -88,15 +97,6 @@ print:	#ori $k0 0x0010
 ##################################################################
 	
 display:
-	la $a0 dummy
-	li $v0 4
-	syscall
-	la $a0 exp
-	li $v0 4
-	syscall
-	la $a0 exp
-	li $v0 4
-	syscall
 
 	lw $a0 direccion
 	move $a1 $t5
@@ -109,8 +109,8 @@ display:
 	sw $t5 12($sp)
 	sw $v0 16($sp)
 	addi $fp $sp -16
-
-	jal mover
+	
+	jal moverf
 
 	lw $t1 4($sp)
 	lw $t0 8($sp)
@@ -118,16 +118,6 @@ display:
 	lw $v0 16($sp)
 	addi $sp $sp 16
 	addi $fp $sp 16
-
-	la $a0 dummy
-	li $v0 4
-	syscall
-	la $a0 exp
-	li $v0 4
-	syscall
-	la $a0 exp
-	li $v0 4
-	syscall
 	
 	li $v0,4
 	la $a0, m1
@@ -172,7 +162,7 @@ end:	lw $v0 s1		# Restore other registers
 # t5 = x
 # t1 = lo que esta en destino
 #
-mover:
+moverf:
 
 	la $t2 dummy
 	li $t5 1
@@ -181,19 +171,15 @@ mover:
 	lw $v0, 12($sp)
 
 	li $t0, 8
-	beq $a0, $t0, der
+	beq $a0, $t0, derf
 	li $t0, 4
-	beq $a0, $t0, izq
+	beq $a0, $t0, izqf
 	li $t0, 2
-	beq $a0, $t0, baj
+	beq $a0, $t0, bajf
 	li $t0, 1
-	beq $a0, $t0, arr
-	
-	li $a0 0
-	sw $a0 direccion
-	j $ra
+	beq $a0, $t0, arrf
 
-arr:
+arrf:
 	nor $a3 $a3 $a3
 	addi $a3 $a3 1
 	
@@ -202,7 +188,7 @@ arr:
 	lb $t1 0($t3)
 
 	li $t5 0x78	
-	beq $t1 $t5 k
+	beq $t1 $t5 kfx
 
 	lb $t6 0($t2)
 
@@ -214,15 +200,15 @@ arr:
 
 	move $v0 $t3 
 
-	b k
+	b kf
 	
-baj:
+bajf:
 	add $t3 $a1 $a3
 	
 	lb $t1 0($t3)
 
 	li $t5 0x78	
-	beq $t1 $t5 k
+	beq $t1 $t5 kfx
 
 	lb $t6 0($t2)
 	
@@ -234,14 +220,14 @@ baj:
 	
 	move $v0 $t3 
 
-	b k
+	b kf
 
-der:
+derf:
 	lb $t6 0($t2)
 	lb $t1 1($a1)
 
 	li $t5 0x78	
-	beq $t1 $t5 k
+	beq $t1 $t5 kfx
 	
 	sb $t1 0($t2)
 
@@ -251,15 +237,15 @@ der:
 	addi $v0 $a1 1
 
 	sb $t6 0($a1)
-	b k
+	b kf
 
-izq:
+izqf:
 
 	lb $t6 0($t2)
 	lb $t1 -1($a1)
 
 	li $t5 0x78	
-	beq $t1 $t5 k
+	beq $t1 $t5 kfx
 
 	sb $t1 0($t2)
 
@@ -269,12 +255,102 @@ izq:
 	addi $v0 $a1 -1
 
 	sb $t6 0($a1)
+	b kf
+
+kfx:	addi $sp $sp -40
+	sw $a0 4($sp)
+	sw $a1 8($sp)
+	sw $a2 12($sp)
+	sw $t0 16($sp)
+	sw $t1 20($sp)
+	sw $t2 24($sp)
+	sw $t3 28($sp)
+	sw $t4 32($sp)
+	sw $t5 36($sp)
+	sw $ra 40($sp)
+
+	jal numAleatorio
 	
-k:	li $a0 0
-	sw $a0 direccion
- 	j $ra
+	lw $ra 40($sp)
+	lw $t5 36($sp)
+	lw $t4 32($sp)
+	lw $t3 28($sp)
+	lw $t2 24($sp)
+	lw $t1 20($sp)
+	lw $t0 16($sp)
+	lw $a2 12($sp)
+	lw $a1 8($sp)
+	lw $a0 4($sp)
+	addi $sp $sp 40
+
+	sw $v0 direccion
+	lw $v0, 12($sp)
+	
+kf:	j $ra
 #####################################################
+
+numAleatorio:
+
+	li $t1, 50
+	lw $t2, seed1
+	li $t7 , 20   # numero de valores aleatorio que se generaran
+	li $t8, 8    # Rango de los valores aleatorios a generar, 
+                      # de 0 a 10, esto fue modificado del algoritmo 
+                      # original
+
+ciclo2:
+	srl $t3, $t2, 3    #  
+	xor $t4, $t3, $t2
+	sll $t5, $t4, 5
+	xor $t6, $t5, $t4
+	addi $t1, $t1, -1
 	
+	move $t2, $t6
+
+	                  # ciclo interno para el calculo de un 
+	                  # valor aleatorio
+	bgtz $t1, ciclo2  # este ciclo interno se ejecuta 50 
+                          # veces para producir un número 
+                          # peudo-aleatorio
+        div $t6, $t8      
+        mfhi $t9	          # se obtiene el modulo para reducir la
+                          # cantidad de valores aletaorios a generar
+	abs $t9, $t9      # se calcula el valor absoluto para 
+                          # solo generar valores positivos
+	
+	beqz $t9, cero
+	beq $t9, 3, tres
+	beq $t9, 5, cinco
+	beq $t9, 6, seis
+	beq $t9, 7, siete
+	b cont
+	
+cero:   li $t9, 1
+        b cont
+
+tres:   li $t9, 2
+        b cont
+        
+cinco:  li $t9, 4
+        b cont
+
+seis:   li $t9, 8
+        b cont
+
+siete:  li $t9, 8
+
+	#  Esta seccion de aqui en adelante simplemente imprime 
+	# uno de los 20 valores aleatorios que el programa genera
+cont:
+	la $v0 seed1
+	sw $t2 0($v0)
+
+	move $v0 $t9	
+
+
+	j $ra
+	
+#####################################################	
 	.text
 	.globl __start
 
