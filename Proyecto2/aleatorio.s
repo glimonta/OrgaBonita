@@ -1,5 +1,5 @@
 	.data
-valores:	.word 1,2,3,4
+valores:	.word 1,2,4,8
 inicio:		.word 0, 0, 0 ,0 	
 minicio:			.asciiz "Comienzo del programa\n"
 mfin:       .asciiz "Fin del programa\n"
@@ -11,17 +11,23 @@ seed2:       .word   0x 10111001
 
 	.text
 	#  Programa que realiza el calculo de numeros aleatorios
-	#  Modificado a partir de un programa para generar los números pseudo­aleatorios basado en el Algoritmo de Tausworthe
-	#  Tomado de la siguiente fuente: http://www.eweb.unex.es/eweb/fisteor/antonio_astillero/ec/spim/ENUNCIADO_PRACTICA_SPIM_2006_07.pdf
+	#  Modificado a partir de un programa para generar los 
+	#  números pseudo­aleatorios basado en el Algoritmo de 
+	#  Tausworthe
+	#  Tomado de la siguiente fuente: 
+	#  http://www.eweb.unex.es/eweb/fisteor/antonio_astillero/ec/spim/
+        #ENUNCIADO_PRACTICA_SPIM_2006_07.pdf
 	
 main:
 	la $a0, minicio
 	li $v0, 4
 	syscall
-    li $t1, 50
-    li $t2, 0xB9  # load seed1, cargar la semilla1
+        li $t1, 50
+        li $t2, 0xB9  # load seed1, cargar la semilla1
 	li $t7 , 20   # numero de valores aleatorio que se generaran
-	li $t8, 10    # Rango de los valores aleatorios a generar, de 0 a 10, esto fue modificado del algoritmo original
+	li $t8, 8    # Rango de los valores aleatorios a generar, 
+                      # de 0 a 10, esto fue modificado del algoritmo 
+                      # original
 ciclo1:	
 
 ciclo2:
@@ -33,14 +39,41 @@ ciclo2:
 	
 	move $t2, $t6
 
-	                  # ciclo interno para el calculo de un valor aleatorio
-	bgtz $t1, ciclo2  # este ciclo interno se ejecuta 50 veces para producir un número peudo-aleatorio
-    div $t6, $t8      
-    mfhi $t9	      # se obtiene el modulo para reducir la cantidad de valores aletaorios a generar
-	abs $t9, $t9      # se calcula el valor absoluto para solo generar valores positivos
+	                  # ciclo interno para el calculo de un 
+	                  # valor aleatorio
+	bgtz $t1, ciclo2  # este ciclo interno se ejecuta 50 
+                          # veces para producir un número 
+                          # peudo-aleatorio
+        div $t6, $t8      
+        mfhi $t9	          # se obtiene el modulo para reducir la
+                          # cantidad de valores aletaorios a generar
+	abs $t9, $t9      # se calcula el valor absoluto para 
+                          # solo generar valores positivos
 	
-	#  Esta seccion de aqui en adelante simplemente imprime uno de los 20 valores aleatorios que el programa genera
-	la $a0, val
+	beqz $t9, cero
+	beq $t9, 3, tres
+	beq $t9, 5, cinco
+	beq $t9, 6, seis
+	beq $t9, 7, siete
+	b cont
+	
+cero:   li $t9, 1
+        b cont
+
+tres:   li $t9, 2
+        b cont
+        
+cinco:  li $t9, 4
+        b cont
+
+seis:   li $t9, 8
+        b cont
+
+siete:  li $t9, 8
+
+	#  Esta seccion de aqui en adelante simplemente imprime 
+	# uno de los 20 valores aleatorios que el programa genera
+cont:   la $a0, val
 	li $v0, 4
 	syscall
 	
@@ -63,7 +96,8 @@ ciclo2:
 	
 	addi $t7, $t7, -1
 	
-	bgtz $t7, ciclo1 # Ciclo para calcular varios (20) valores aleatorio diferentes
+	bgtz $t7, ciclo1 # Ciclo para calcular varios (20) 
+                         # valores aleatorio diferentes
 	
 	
 	la $a0, mfin     # Se imprime un mensaje de Fin del Programa
