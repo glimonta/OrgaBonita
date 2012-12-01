@@ -107,6 +107,9 @@ print:	sw $k0 direccion
 #
 display:
 
+	li $a0, 0xffff0000
+	sw $zero, 0($a0)
+
 #
 # Guardo todo lo que tengo que guardar y paso lo que tenga que pasar
 # como parametro para poder llamar a la funcion que mueve al pacman
@@ -149,7 +152,12 @@ display:
 	li $t0, 5
 	mtc0 $t0, $11
 	mtc0 $zero, $9
+
 	
+	li $a0, 0xffff0000
+	lw $t0, 0($a0)
+	ori $t0, 0x02  # use keyboard interrupts
+	sw $t0, 0($a0)
 
 ###################################################################
 	

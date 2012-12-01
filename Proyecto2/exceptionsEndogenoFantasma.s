@@ -34,7 +34,7 @@ seed2:       .word   0x10111001
 	mfc0 $k0 $13		# Cause register
 	srl $a0 $k0 2		# Extract ExcCode Field
 	andi $a0 $a0 0x1f
-
+	
 ##################################################################
 
 
@@ -317,6 +317,10 @@ ciclo2:
                           # cantidad de valores aletaorios a generar
 	abs $t9, $t9      # se calcula el valor absoluto para 
                           # solo generar valores positivos
+	move $a0 $t9
+	li $v0 1
+	syscall
+
 	
 	beqz $t9, cero
 	beq $t9, 3, tres
@@ -374,6 +378,7 @@ __start:
 	mtc0 $t0, $11
 	mtc0 $zero, $9
 
+# posicion inicial
 	la $t5 m1
 	la $t5 24($t5)
 

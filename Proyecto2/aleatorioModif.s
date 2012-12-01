@@ -24,7 +24,7 @@ main:
 	syscall
         li $t1, 50
         li $t2, 0xB9  # load seed1, cargar la semilla1
-	li $t7 , 20   # numero de valores aleatorio que se generaran
+	li $t7 , 30   # numero de valores aleatorio que se generaran
 	li $t8, 8    # Rango de los valores aleatorios a generar, 
                       # de 0 a 10, esto fue modificado del algoritmo 
                       # original
