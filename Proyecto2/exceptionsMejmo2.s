@@ -202,41 +202,41 @@ display:
           
           jal moverf
           
-#          lw $t1 4($sp)
-#          lw $t0 8($sp)
-#          lw $t5 12($sp)
-#          move $s5 $v0
-#          sw $v0 Pinky
-#          lw $v0 16($sp)
-#          addi $sp $sp 16
-#          addi $fp $sp 16
+          lw $t1 4($sp)
+          lw $t0 8($sp)
+          lw $t5 12($sp)
+          move $s5 $v0
+          sw $v0 Pinky
+          lw $v0 16($sp)
+          addi $sp $sp 16
+          addi $fp $sp 16
          
 # Inky
          
-#          la $a0, direccionF3
-#          lw $a1, Inky
-#          la $a2, tabAct
-#          lw $a3, tamCol
-#          
-#          addi $sp, $sp, -20
-#          sw $t1, 4($sp)
-#          sw $t0, 8($sp)
-#          sw $t5 12($sp)
-#          sw $v0 16($sp)
-#          sw $s5 20($sp)
-#          addi $fp $sp -20
-#          
-#          jal moverf
-#          
-#          lw $t1 4($sp)
-#          lw $t0 8($sp)
-#          lw $t5 12($sp)
-#          move $s5 $v0
-#          sw $v0 Inky
-#          lw $v0 16($sp)
-#          addi $sp $sp 16
-#          addi $fp $sp 16
-        
+          la $a0, direccionF3
+          lw $a1, Inky
+          la $a2, tabAct
+          lw $a3, tamCol
+          
+          addi $sp, $sp, -20
+          sw $t1, 4($sp)
+          sw $t0, 8($sp)
+          sw $t5 12($sp)
+          sw $v0 16($sp)
+          sw $s5 20($sp)
+          addi $fp $sp -20
+          
+          jal moverf
+          
+          lw $t1 4($sp)
+          lw $t0 8($sp)
+          lw $t5 12($sp)
+          move $s5 $v0
+          sw $v0 Inky
+          lw $v0 16($sp)
+          addi $sp $sp 16
+          addi $fp $sp 16
+       
 #########################################################
 #
 # imprimimos el tablero con 4 lineas
@@ -918,7 +918,7 @@ buscarTab:      li $a0, 4
                 move $s6, $zero         #contador para posicion
                 move $s7, $zero         #contador de tamaño
                 move $t2, $zero         #anterior
-                li $s3, 3               #contador de fantasmas
+                li $s4, 3               #contador de fantasmas
                 
                 li $t4, 0xa
                 sb $t4, 0($t3)
@@ -999,12 +999,12 @@ pacm:           sb $t4, 0($t3)
                 b busqueda
                 
 fant:           sb $t4, 0($t3)
-                beq $s3, 3, BlinkyAsig
-                beq $s3, 2, PinkyAsig
-                beq $s3, 1, InkyAsig
-                beqz $s3, busqueda
+                beq $s4, 3, BlinkyAsig
+                beq $s4, 2, PinkyAsig
+                beq $s4, 1, InkyAsig
+                beqz $s4, busqueda
                 
-BlinkyAsig:     addi $s3, $s3, -1
+BlinkyAsig:     addi $s4, $s4, -1
                 la $s6, 0($t3)
                 sw $s6, Blinky
                 addi $t3, $t3, 1
@@ -1017,7 +1017,7 @@ BlinkyAsig:     addi $s3, $s3, -1
                 
                 b busqueda
 
-PinkyAsig:      addi $s3, $s3, -1
+PinkyAsig:      addi $s4, $s4, -1
                 la $s6, 0($t3)
                 sw $s6, Pinky
                 addi $t3, $t3, 1
@@ -1030,7 +1030,7 @@ PinkyAsig:      addi $s3, $s3, -1
                 
                 b busqueda
                 
-InkyAsig:       addi $s3, $s3, -1
+InkyAsig:       addi $s4, $s4, -1
                 la $s6, 0($t3)
                 sw $s6, Inky
                 addi $t3, $t3, 1
