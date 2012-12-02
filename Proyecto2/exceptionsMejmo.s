@@ -25,7 +25,7 @@ pacman: .word 0
 ghost:  .word 0
 life:   .word 1
 tabAct: .word 0
-numCol: .word 0
+tamCol: .word 0
 numEle: .word 0
 numA:   .word 0
 numC:   .word 0
@@ -129,7 +129,7 @@ display:
         lw $a0, direccion
         move $a1, $t5
         lw $a2, tabAct
-        lw $a3, numCol
+        lw $a3, tamCol
         
         addi $sp, $sp, -16
         sw $t1, 4($sp)
@@ -152,7 +152,7 @@ display:
         la $a0, direccionF
         move $a1, $s5
         la $a2, tabAct
-        lw $a3, numCol
+        lw $a3, tamCol
         
         addi $sp, $sp, -20
         sw $t1, 4($sp)
@@ -801,7 +801,7 @@ blah:
 #	li $v0 11
 #	syscall
 
-        lw $t5 tabAct
+        lw $t5 pacman
 	
         lw $s7 life
 
@@ -835,8 +835,14 @@ buscarTab:      li $a0, 4
                 move $t5, $zero        #pacman
                 move $s5, $zero         #fantasma
                 move $s6, $zero         #contador para posicion
-                move $s7, $zero         #contador de columnas
+                move $s7, $zero         #contador de tamaño
                 move $t2, $zero         #anterior
+                
+                li $t4, 0xa
+                sb $t4, 0($t3)
+                addi $t3, $t3, 1
+                addi $s7, $s7, 1
+                addi $s2, $s2, 1
                 
 busqueda:       lb $t4, 0($s1)
                 beq $t4, 0xa, saltoLin
@@ -847,6 +853,7 @@ busqueda:       lb $t4, 0($s1)
                 sb $t4, 0($t3)
                 addi $t3, $t3, 1
                 addi $s1, $s1, 1
+                addi $s7, $s7, 1
                 addi $s2, $s2, 1
                 addi $s6, $s6, 1
                 move $t2, $t4
@@ -855,9 +862,11 @@ busqueda:       lb $t4, 0($s1)
                 b busqueda
                 
 saltoLin:       beq $t4, $t2, finTab
-                lw $s6, numCol
-                addi $s6, $s6, 1
-                sw $s6, numCol
+                sw $s7, tamCol
+                move $a0, $s7
+                li $v0, 1
+                syscall
+                move $s7, $zero
                 sb $t4, 0($t3)
                 addi $t3, $t3, 1
                 addi $s1, $s1, 1
@@ -876,6 +885,7 @@ sumA:           lw $s3, numA
                 addi $s1, $s1, 1
                 addi $s2, $s2, 1
                 addi $s6, $s6, 1
+                addi $s7, $s7, 1
                 move $t2, $t4
                 beq $s2, 4, masEsp2
                 
@@ -889,6 +899,7 @@ sumC:           lw $s3, numC
                 addi $s1, $s1, 1
                 addi $s2, $s2, 1
                 addi $s6, $s6, 1
+                addi $s7, $s7, 1
                 move $t2, $t4
                 beq $s2, 4, masEsp2
                 
@@ -901,6 +912,7 @@ pacm:           sb $t4, 0($t3)
                 addi $s1, $s1, 1
                 addi $s2, $s2, 1
                 addi $s6, $s6, 1
+                addi $s7, $s7, 1
                 move $t2, $t4
                 beq $s2, 4, masEsp2
                 
@@ -913,6 +925,7 @@ fant:           sb $t4, 0($t3)
                 addi $s1, $s1, 1
                 addi $s2, $s2, 1
                 addi $s6, $s6, 1
+                addi $s7, $s7, 1
                 move $t2, $t4
                 beq $s2, 4, masEsp2
                 
