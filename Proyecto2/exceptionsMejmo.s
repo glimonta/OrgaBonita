@@ -894,8 +894,9 @@ sumC:           lw $s3, numC
                 
                 b busqueda
                 
-pacm:           sw $s6, pacman
-                sb $t4, 0($t3)
+pacm:           sb $t4, 0($t3)
+                la $s6, 0($t3)
+                sw $s6, pacman
                 addi $t3, $t3, 1
                 addi $s1, $s1, 1
                 addi $s2, $s2, 1
@@ -905,8 +906,9 @@ pacm:           sw $s6, pacman
                 
                 b busqueda
                 
-fant:           sw $s6, ghost
-                sb $t4, 0($t3)
+fant:           sb $t4, 0($t3)
+                la $s6, 0($t3)
+                sw $s6, ghost
                 addi $t3, $t3, 1
                 addi $s1, $s1, 1
                 addi $s2, $s2, 1
