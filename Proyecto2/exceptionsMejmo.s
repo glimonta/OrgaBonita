@@ -1,45 +1,4 @@
         .kdata
-__m1_:  .asciiz "  Exception "
-__m2_:  .asciiz " occurred and ignored\n"
-__e0_:  .asciiz "  [Interrupt] "
-__e1_:  .asciiz "  [TLB]"
-__e2_:  .asciiz "  [TLB]"
-__e3_:  .asciiz "  [TLB]"
-__e4_:  .asciiz "  [Address error in inst/data fetch] "
-__e5_:  .asciiz "  [Address error in store] "
-__e6_:  .asciiz "  [Bad instruction address] "
-__e7_:  .asciiz "  [Bad data address] "
-__e8_:  .asciiz "  [Error in syscall] "
-__e9_:  .asciiz "  [Breakpoint] "
-__e10_: .asciiz "  [Reserved instruction] "
-__e11_: .asciiz ""
-__e12_: .asciiz "  [Arithmetic overflow] "
-__e13_: .asciiz "  [Trap] "
-__e14_: .asciiz ""
-__e15_: .asciiz "  [Floating point] "
-__e16_: .asciiz ""
-__e17_: .asciiz ""
-__e18_: .asciiz "  [Coproc 2]"
-__e19_: .asciiz ""
-__e20_: .asciiz ""
-__e21_: .asciiz ""
-__e22_: .asciiz "  [MDMX]"
-__e23_: .asciiz "  [Watch]"
-__e24_: .asciiz "  [Machine check]"
-__e25_: .asciiz ""
-__e26_: .asciiz ""
-__e27_: .asciiz ""
-__e28_: .asciiz ""
-__e29_: .asciiz ""
-__e30_: .asciiz "  [Cache]"
-__e31_: .asciiz ""
-__excp: .word __e0_, __e1_, __e2_, __e3_, __e4_, __e5_, __e6_, __e7_, __e8_,
-        .word __e9_
-        .word __e10_, __e11_, __e12_, __e13_, __e14_, __e15_, __e16_, __e17_,
-        .word __e18_,
-        .word __e19_, __e20_, __e21_, __e22_, __e23_, __e24_, __e25_, __e26_,
-        .word __e27_,
-        .word __e28_, __e29_, __e30_, __e31_
 s1:     .word 0
 s2:     .word 0
 buf:    .space 1
@@ -72,18 +31,8 @@ numC:   .word 0
 
         
 
-# This is the exception handler code that the processor runs when
-# an exception occurs. It only prints some information about the
-# exception, but can server as a model of how to write a handler.
-#
-# Because we are running in the kernel, we can use $k0/$k1 without
-# saving their old values.
-
-# This is the exception vector address for MIPS-1 (R2000):
-#       .ktext 0x80000080
-# This is the exception vector address for MIPS32:
         .ktext 0x80000180
-# Select the appropriate one for the mode in which SPIM is compiled.
+
         .set noat
         move $k1 $at            # Save $at
         .set at
@@ -95,42 +44,42 @@ numC:   .word 0
         andi $a0 $a0 0x1f
 
 #########################################################
-
-###################################################################
 #
-# Aqui se carga el vector de la interrupcion de teclado y se revisa a
-# ver si fue una interrupcion de teclado
+# Aqui se carga el vector de la interrupcion de teclado 
+# y se revisa a ver si fue una interrupcion de teclado
 # si es de teclado el resultado no deberia ser 0
-# si es = 0 entonces entro por interrupcion de timer y se va a display
+# si es = 0 entonces entro por interrupcion del timer y
+# se va a display
 #
-        lui $t0 0xFFFF
 
-        lw $t1, 0($t0) 
+        lui $t0, 0xFFFF
+        
+        lw $t1, 0($t0)
         andi $t1, $t1, 0x0001
-        beq $t1, $zero, display
-
-##################################################################
+        beqz $t1, display
+########################################################
 #
-# Una vez que es una interrupcion de teclado revisas si es "q"
-# true = me salgo
+# Una vez que es una interrupcion de teclado se revisa 
+# si es q ( si lo es se sale) 
 #
-        addi $s0, $0, 113 # q
 
+        addi $s0, $zero, 113 # q
+        
         lw $a1, 4($t0)
         bne $a1, $s0, Mov
-
-isho:   #j $ra
-
-        li $v0 10
-        syscall
-
-#
-# Como en este caso si no es q entonces deberia ser de movimiento
-# entramos en el procedimiento que dependiendo de lo que lea enciende
-# un bit en direccion y retorna al ciclo infinito
-#
         
-Mov:    lw $k0 direccion
+isho:   li $v0, 10
+        syscall
+        
+#######################################################
+#
+# Como en este caso si no es q entonces deberia ser de 
+# movimiento entramos en el procedimiento que dependiendo 
+# de lo que lea enciende un bit en direccion y retorna 
+# al ciclo infinito
+#
+
+Mov:    lw $k0, direccion
 
         lw $s0, up
         beq $a1, $s0, mU
@@ -138,80 +87,79 @@ Mov:    lw $k0 direccion
         beq $a1, $s0, mD
         lw $s0, left
         beq $a1, $s0, mL
-        lw $s0, rigth
+        lw $s0, right
         beq $a1, $s0, mR
         b end
-
+        
 # 0001 = up
 # 0010 = down
 # 0100 = left
-# 1000 = rigth
+# 1000 = right
+
+mU:     ori $k0, 0x0001
+        b print
         
-mU:     ori $k0 0x0001
+mD:     ori $k0, 0x0002
         b print
-mD:     ori $k0 0x0002
-        b print
-mL:     ori $k0 0x0004
-        b print
-mR:     ori $k0 0x0008
+        
+mL:     ori $k0, 0x0004
+        b print 
+        
+mR:     ori $k0, 0x0008
 
-print:  sw $k0 direccion
-
+print:  sw $k0, direccion
         b end
 
-##################################################################
+#########################################################
+# 
+# si entra por timer se actualiza el monitor
 #
-# Si entro por timer entonces tiene que actualizar el monitor
-#
-#
-display:
 
+display:        
         li $a0, 0xffff0000
         sw $zero, 0($a0)
+                
+# se guarda lo que se deba guardar y se pasan las cosas como 
+# parametros para llamar a la funcion que mueve el pacman
 
-#
-# Guardo todo lo que tengo que guardar y paso lo que tenga que pasar
-# como parametro para poder llamar a la funcion que mueve al pacman
-#
-        lw $a0 direccion
-        move $a1 $t5
-        la $a2 tabAct
-        lw $a3 tamano
-
-        addi $sp $sp -16
-        sw $t1 4($sp)
-        sw $t0 8($sp)
-        sw $t5 12($sp)
-        sw $v0 16($sp)
-        addi $fp $sp -16
-
+        lw $a0, direccion
+        move $a1, $t5
+        lw $a2, tabAct
+        lw $a3, numCol
+        
+        addi $sp, $sp, -16
+        sw $t1, 4($sp)
+        sw $t0, 8($sp)
+        sw $t5, 12($sp)
+        sw $v0, 16($sp)
+        addi $fp, $sp, -16
+        
         jal mover
+        
+        lw $t1, 4($sp)
+        lw $t0, 8($sp)
+        move $t5, $v0
+        lw $v0, 16($sp)
+        addi $sp, $sp, 16
+        addi $fp, $sp, 16
+        
+##########################################################
 
-        lw $t1 4($sp)
-        lw $t0 8($sp)
-        move $t5 $v0
-        lw $v0 16($sp)
-        addi $sp $sp 16
-        addi $fp $sp 16
-
-
-#################################################################
-
-        la $a0 direccionF
-        move $a1 $s5
-        la $a2 m1
-        lw $a3 tamano
-
-        addi $sp $sp -20
-        sw $t1 4($sp)
-        sw $t0 8($sp)
+        la $a0, direccionF
+        move $a1, $s5
+        la $a2, tabAct
+        lw $a3, numCol
+        
+        addi $sp, $sp, -20
+        sw $t1, 4($sp)
+        sw $t0, 8($sp)
         sw $t5 12($sp)
         sw $v0 16($sp)
         sw $s5 20($sp)
         addi $fp $sp -20
         
         jal moverf
-
+        
         lw $t1 4($sp)
         lw $t0 8($sp)
         lw $t5 12($sp)
@@ -219,12 +167,11 @@ display:
         lw $v0 16($sp)
         addi $sp $sp 16
         addi $fp $sp 16
-
-#################################################################
-
+        
+#########################################################
 #
-# Imprimo el tablero con 4 lineas
-# 
+# imprimimos el tablero con 4 lineas
+#
 
         li $v0,1
         move $a0, $s7
@@ -238,34 +185,35 @@ display:
         move $a0, $s6
         syscall
         
-        li $v0,4
-        la $a0, m1
+        li $v0, 4
+        lw $a0, tabAct
         syscall
-
-        li $v0,4
+        
+        li $v0, 4
         la $a0, new_line
         syscall
-
-        lb $t0 0($t5)
-        li $a0 0x6F
-        bne $t0 $a0 noFalta
-        li $t0 0x3C
-        sb $t0 0($t5)
+        
+        lb $t0, 0($t5)
+        li $a0, 0x6f
+        bne $t0, $a0, noFalta
+        li $t0, 0x3c
+        sb $t0, 0($t5)
+        
 noFalta:
-        
-# Reinicio el timer
-        
+
+# reiniciamos el timer
+
         li $t0, 5
         mtc0 $t0, $11
         mtc0 $zero, $9
         
         li $a0, 0xffff0000
         lw $t0, 0($a0)
-        ori $t0, 0x02  # use keyboard interrupts
+        ori $t0, 0x02
         sw $t0, 0($a0)
-
-###################################################################
         
+#####################################################
+
 end:    lw $v0 s1               # Restore other registers
         lw $a0 s2
         lw $ra ra
@@ -280,10 +228,10 @@ end:    lw $v0 s1               # Restore other registers
         mtc0 $k0 $12
         
         eret
-
-######################################################
+        
+#####################################################
 #
-# Funcion que lo mueve
+# funcion que mueve al pacman
 #
 # a1 = la posicion de lo que vas a mover
 # a0 = dirrecion
@@ -295,7 +243,7 @@ end:    lw $v0 s1               # Restore other registers
 # t5 = x
 # t1 = lo que esta en destino
 #
-        
+
 mover:
         li $t0 0
         lb $t0 0($a1)
@@ -473,10 +421,10 @@ sinPi:
 k:      li $a0 0
         sw $a0 direccion
         j $ra
-
-#####################################################
-# fantasma
-######################################################
+        
+##################################################
+#
+# funcion que mueve al fantasma
 #
 # a1 = la posicion de lo que vas a mover
 # a0 = dirrecion
@@ -489,6 +437,7 @@ k:      li $a0 0
 # t5 = x
 # t1 = lo que esta en destino
 #
+
 moverf:
 
         la $t2 dummy
@@ -683,7 +632,8 @@ kfx:
         blt $s7 $zero isho
         
 kf:     j $ra
-#####################################################
+
+###########################################################
 
 numAleatorio:
 
@@ -748,15 +698,15 @@ cont:
         move $v0 $t9    
 
         j $ra
-
-#########################################################
-
-
-# Standard startup code.  Invoke the routine "main" with arguments:
-#       main(argc, argv, envp)
+       
+################################
 #
+# aqui comienza el programa
+#
+################################
         .text
         .globl __start
+        
 __start:
         lw $a0 0($sp)           # argc
         addiu $a1 $sp 4         # argv
@@ -788,7 +738,7 @@ leer:   move $a0, $t0
         li $v0, 14
         syscall
         
-        blez $v0, buscarTab
+        blez $v0, blah
         
         la $a0, buf
         beq $a0, 0xa, leer
@@ -813,8 +763,10 @@ masEsp: li $v0, 9
         move $t3, $v0
         
         b leer
-        
+blah:        
         jal buscarTab
+        
+########################################
         
         # Esto habilita las interrupciones por teclaso
         
@@ -836,8 +788,25 @@ masEsp: li $v0, 9
         
         lw $t5 tabAct
         lw $s7 life
-       
-       j bleh
+
+########################################################
+        jal main
+        nop
+
+# cuando el main hace j $ra entra en el loop infinito,
+# nada mas sale de ahi si se encuentra con una interrupcion
+loop:   
+        b loop
+        
+fin:    li $v0 10
+        syscall                 # syscall 10 (exit)
+
+#################################################
+#
+#  Funcion que busca el tablero actual.
+#  Lo devuelve en memoria en tabAct.
+#
+
 
 buscarTab:      li $a0, 4
                 li $v0, 9
@@ -952,14 +921,6 @@ imprimir:       lb $a0, 0($t6)
                 
 fin1:            jr $ra
 
-
-bleh:
-########################################################
-        jal main
-        nop
-
-fin:    li $v0 10
-        syscall                 # syscall 10 (exit)
-
+###############################################
         .globl __eoth
 __eoth:
