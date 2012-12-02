@@ -150,7 +150,7 @@ display:
 ##########################################################
 
         la $a0, direccionF
-        move $a1, $s5
+        la $a1, ghost
         la $a2, tabAct
         lw $a3, tamCol
         
@@ -771,12 +771,12 @@ masEsp: li $v0, 9
         move $t3, $v0
         
         b leer
-blah:        
+blah:  
         jal buscarTab
         
 ########################################
         
-        # Esto habilita las interrupciones por teclaso
+        # Esto habilita las interrupciones por teclado
         
         li $a0, 0xffff0000
         lw $t0, 0($a0)
@@ -793,14 +793,6 @@ blah:
         mtc0 $zero, $9
        
        # Me carga la posicion del pacman al apuntador $t5
-        
-
-#	lw $t5 pacman
-
-#	lb $a0 0($t5)
-#	li $v0 11
-#	syscall
-
         lw $t5 pacman
 	
         lw $s7 life
