@@ -794,8 +794,15 @@ blah:
        
        # Me carga la posicion del pacman al apuntador $t5
         
-#        lw $t5 tabAct
-	lw $t5 pacman
+
+#	lw $t5 pacman
+
+#	lb $a0 0($t5)
+#	li $v0 11
+#	syscall
+
+        lw $t5 tabAct
+	
         lw $s7 life
 
 ########################################################
