@@ -162,7 +162,7 @@ display:
         sw $s5 20($sp)
         addi $fp $sp -20
         
-#        jal moverf
+        jal moverf
         
         lw $t1 4($sp)
         lw $t0 8($sp)
@@ -871,6 +871,7 @@ saltoLin:       beq $t4, $t2, finTab
                 addi $t3, $t3, 1
                 addi $s1, $s1, 1
                 addi $s2, $s2, 1
+                addi $s7, $s7, 1
                 addi $s6, $s6, 1
                 move $t2, $t4
                 beq $s2, 4, masEsp2
