@@ -7,6 +7,7 @@ ant:    .space 1
 def:    .asciiz "pac.txt"
 exp:    .asciiz " :live          score: "
 new_line:       .asciiz "\n\n\n\n"
+ln:	.asciiz " \n"
 direccion:      .word 0
 direccionF:     .word 1
 tamano: .word 19
@@ -115,7 +116,10 @@ print:  sw $k0, direccion
 # si entra por timer se actualiza el monitor
 #
 
-display:        
+display:
+
+
+	
         li $a0, 0xffff0000
         sw $zero, 0($a0)
                 
@@ -158,7 +162,7 @@ display:
         sw $s5 20($sp)
         addi $fp $sp -20
         
-        jal moverf
+#        jal moverf
         
         lw $t1 4($sp)
         lw $t0 8($sp)
@@ -180,11 +184,15 @@ display:
         li $v0,4
         la $a0, exp
         syscall
-
+	
         li $v0,1
         move $a0, $s6
         syscall
-        
+
+	li $v0,4
+        la $a0, ln
+        syscall
+	
         li $v0, 4
         lw $a0, tabAct
         syscall
@@ -786,7 +794,8 @@ blah:
        
        # Me carga la posicion del pacman al apuntador $t5
         
-        lw $t5 tabAct
+#        lw $t5 tabAct
+	lw $t5 pacman
         lw $s7 life
 
 ########################################################
