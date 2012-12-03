@@ -169,6 +169,7 @@ display:
          la $a2, tabAct
          lw $a3, tamCol
          lw $v0, Blinky
+	 la $s5, dummyB
          
          addi $sp, $sp, -20
          sw $t1, 4($sp)
@@ -196,6 +197,7 @@ display:
           la $a2, tabAct
           lw $a3, tamCol
           lw $v0, Pinky
+	la $s5, dummyP
           
           addi $sp, $sp, -20
           sw $t1, 4($sp)
@@ -223,6 +225,7 @@ display:
           la $a2, tabAct
           lw $a3, tamCol
           lw $v0, Inky
+	la $s5, dummyI
           
           addi $sp, $sp, -20
           sw $t1, 4($sp)
@@ -538,7 +541,8 @@ k:	li $a0 0
 
 moverf:
 
-        la $t2 dummy
+	lw $t2 20($sp)
+#        la $t2 dummy
         lw $t5 0($a0)
 
         # deberia ir $fp en vez de $sp
