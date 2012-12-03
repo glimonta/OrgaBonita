@@ -2,6 +2,7 @@
 m1:		.asciiz "\nxxxxxxxxxxxxxxxxxxx\nxaaaaaaax<aaaaaaax\nxaa$aaaa*aaa*aaaax\nxaaaaaaaaaaaaaaaax\nxxxxxxxxxxxxxxxxxxx\n"
 exp:		.asciiz " :life          score: "
 new_line: 	.asciiz "\n\n\n\n"
+ln:		.asciiz "-\n-"
 direccion:	.word 0
 direccionF:	.word 1
 tamano:		.word 19
@@ -485,7 +486,31 @@ npa:	lw $t1 pacman
 	li $t1 0x6F
 	addi $s7 $s7 -1
 	
-pa:	
+pa:
+	li $v0,11
+	lb $a0 0($t2)
+        syscall
+	
+	la $a0 ln
+	li $v0 4
+	syscall
+	
+	li $v0,11
+	lb $a0 0($t3)
+        syscall
+
+	la $a0 ln
+	li $v0 4
+	syscall
+
+	li $v0,11
+	lb $a0 0($a1)
+        syscall
+
+	la $a0 ln
+	li $v0 4
+	syscall
+	
 	lb $t6 0($t2)
 	li $t0 0x24
 	

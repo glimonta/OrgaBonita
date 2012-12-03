@@ -171,6 +171,9 @@ display:
          sw $t1, 4($sp)
          sw $t0, 8($sp)
          sw $t5 12($sp)
+
+	lw $v0, Blinky
+	
          sw $v0 16($sp)
          sw $s5 20($sp)
          addi $fp $sp -20
@@ -183,8 +186,8 @@ display:
          move $s5 $v0
          sw $v0 Blinky
          lw $v0 16($sp)
-         addi $sp $sp 16
-         addi $fp $sp 16
+         addi $sp $sp 20
+         addi $fp $sp 20
 
 #Pinky
        
@@ -195,9 +198,12 @@ display:
           lw $v0, Pinky
           
           addi $sp, $sp, -20
-          sw $t1, 4($sp)
+         sw $t1, 4($sp)
           sw $t0, 8($sp)
           sw $t5 12($sp)
+
+	lw $v0, Pinky
+	
           sw $v0 16($sp)
           sw $s5 20($sp)
           addi $fp $sp -20
@@ -210,8 +216,8 @@ display:
           move $s5 $v0
           sw $v0 Pinky
           lw $v0 16($sp)
-          addi $sp $sp 16
-          addi $fp $sp 16
+         addi $sp $sp 20
+          addi $fp $sp 20
          
 # Inky
          
@@ -225,6 +231,9 @@ display:
           sw $t1, 4($sp)
           sw $t0, 8($sp)
           sw $t5 12($sp)
+
+	lw $v0, Inky
+	
           sw $v0 16($sp)
           sw $s5 20($sp)
           addi $fp $sp -20
@@ -519,6 +528,7 @@ moverf:
         la $t2 dummy
         lw $t5 0($a0)
 
+
         # deberia ir $fp en vez de $sp
         lw $v0, 12($sp)
 
@@ -536,7 +546,7 @@ arrf:
         addi $a3 $a3 1
         
         add $t3 $a1 $a3
-        
+	
         lb $t1 0($t3)
 
         li $t5 0x24     
@@ -557,6 +567,7 @@ arrf:
         beq $t1 $t5 npa
         li $t5 0x3E
         beq $t1 $t5 npa
+	
         b pa
 
 npa:    lw $t1 pacman
@@ -816,36 +827,36 @@ __start:
         
 ######################################################
 
-saludin:        la $a0, saludo
-                li $v0, 4
-                syscall
+#saludin:        la $a0, saludo
+#                li $v0, 4
+#                syscall
                 
-                li $v0, 8
-                la $a0, arch
-                li $a1, 20
-                syscall
+#                li $v0, 8
+#                la $a0, arch
+#                li $a1, 20
+#                syscall
                 
-                move $t0, $zero
-                la $t2, arch
-                la $t3, arch2
+#                move $t0, $zero
+#                la $t2, arch
+#                la $t3, arch2
                 
-verif:  lb $t1, 0($t2)
-        beqz $t1, ya
-        beq $t1, 0xa, ya
-        sb $t1, 0($t3)
-        addi $t2, $t2, 1
-        addi $t3, $t3, 1
-        addi $t0, $t0, 1
-        b verif
+#verif:  lb $t1, 0($t2)
+#        beqz $t1, ya
+#        beq $t1, 0xa, ya
+#        sb $t1, 0($t3)
+#        addi $t2, $t2, 1
+#        addi $t3, $t3, 1
+#        addi $t0, $t0, 1
+#        b verif
         
-ya:     beqz $t0, cargaNor
-        la $a0, arch2
-        li $v0, 13
-        li $a1, 0x0
-        syscall
-                
-        move $t0, $v0
-        b lectura
+#ya:     beqz $t0, cargaNor
+#        la $a0, arch2
+#        li $v0, 13
+#        li $a1, 0x0
+#        syscall
+#                
+#        move $t0, $v0
+#        b lectura
 
 cargaNor:       la $a0, def
                 li $v0, 13
@@ -898,6 +909,10 @@ blah:
         jal buscarTab
         
 ########################################
+
+	la $a0 def
+	li $v0 4
+	syscall
         
         # Esto habilita las interrupciones por teclado
         

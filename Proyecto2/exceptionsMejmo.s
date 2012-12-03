@@ -149,8 +149,8 @@ display:
         
 ##########################################################
 
-        la $a0, direccionF
-        la $a1, ghost
+        lw $a1, ghost	
+	la $a0, direccionF
         la $a2, tabAct
         lw $a3, tamCol
         
@@ -168,10 +168,13 @@ display:
         lw $t0 8($sp)
         lw $t5 12($sp)
         move $s5 $v0
+	
+	sw $v0 ghost
+	
         lw $v0 16($sp)
-        addi $sp $sp 16
-        addi $fp $sp 16
-        
+        addi $sp $sp 20
+        addi $fp $sp 20
+x`        
 #########################################################
 #
 # imprimimos el tablero con 4 lineas
@@ -292,6 +295,8 @@ arr:
 
         li $t5 0x78     
         beq $t1 $t5 k
+	li $t5 0x58     
+        beq $t1 $t5 k
 
         #$
         li $t5 0x24     
@@ -335,6 +340,8 @@ baj:
 
         li $t5 0x78     
         beq $t1 $t5 k
+	li $t5 0x58     
+        beq $t1 $t5 k
 
         #$
         li $t5 0x24     
@@ -367,6 +374,8 @@ der:
         lb $t1 1($a1)
 
         li $t5 0x78     
+        beq $t1 $t5 k
+	li $t5 0x58     
         beq $t1 $t5 k
         #$
         li $t5 0x24     
@@ -402,6 +411,8 @@ izq:
         lb $t1 -1($a1)
 
         li $t5 0x78     
+        beq $t1 $t5 k
+	li $t5 0x58     
         beq $t1 $t5 k
         #$
         li $t5 0x24     
@@ -464,14 +475,18 @@ moverf:
         beq $t5, $t0, arrf
 
 arrf:
+	
         nor $a3 $a3 $a3
         addi $a3 $a3 1
-        
-        add $t3 $a1 $a3
-        
-        lb $t1 0($t3)
 
+	
+        add $t3 $a1 $a3
+	
+        lb $t1 0($t3)
+		
         li $t5 0x78     
+        beq $t1 $t5 kfx
+	li $t5 0x58     
         beq $t1 $t5 kfx
 
         #Pacman
@@ -493,12 +508,12 @@ npa:    lw $t1 pacman
 pa:     
         lb $t6 0($t2)
         li $t0 0x24
-        
+
         sb $t1 0($t2)
         sb $t0 0($t3)
         sb $t6 0($a1)   
 
-        move $v0 $t3 
+        move $v0 $t3
 
         b kf
         
@@ -508,6 +523,8 @@ bajf:
         lb $t1 0($t3)
 
         li $t5 0x78     
+        beq $t1 $t5 kfx
+	li $t5 0x58     
         beq $t1 $t5 kfx
 
         #Pacman
@@ -544,6 +561,8 @@ derf:
 
         li $t5 0x78     
         beq $t1 $t5 kfx
+	li $t5 0x58     
+        beq $t1 $t5 kfx
 
         #Pacman
         li $t5 0x56
@@ -577,6 +596,8 @@ izqf:
         lb $t1 -1($a1)
 
         li $t5 0x78     
+        beq $t1 $t5 kfx
+	li $t5 0x58     
         beq $t1 $t5 kfx
 
         #Pacman
@@ -793,7 +814,12 @@ blah:
         mtc0 $zero, $9
        
        # Me carga la posicion del pacman al apuntador $t5
-        lw $t5 pacman
+        
+	lw $t5 pacman
+
+#	lb $a0 0($t5)
+#	li $v0 11
+#	syscall
 	
         lw $s7 life
 
