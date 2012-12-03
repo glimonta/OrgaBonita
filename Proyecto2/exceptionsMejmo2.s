@@ -6,7 +6,7 @@ tab:    .word 0
 ant:    .space 1
 saludo: .asciiz "Bienvenido a PACMAN :D \nindique el nombre del archivo de
 tableros: \n(si deja el espacio en blanco se cargara el archivo por default)\n"
-def:    .asciiz "pac.txt"
+def:    .asciiz "pac2.txt"
 exp:    .asciiz " :live          score: "
 new_line:       .asciiz "\n\n\n\n"
 ln:	.asciiz " \n"
@@ -165,6 +165,7 @@ display:
          lw $a1, Blinky
          la $a2, tabAct
          lw $a3, tamCol
+         lw $v0, Blinky
          
          addi $sp, $sp, -20
          sw $t1, 4($sp)
@@ -191,6 +192,7 @@ display:
           lw $a1, Pinky
           la $a2, tabAct
           lw $a3, tamCol
+          lw $v0, Pinky
           
           addi $sp, $sp, -20
           sw $t1, 4($sp)
@@ -217,6 +219,7 @@ display:
           lw $a1, Inky
           la $a2, tabAct
           lw $a3, tamCol
+          lw $v0, Inky
           
           addi $sp, $sp, -20
           sw $t1, 4($sp)
@@ -724,7 +727,7 @@ kfx:
         
         sw $v0 0($a0)
         
-        lw $v0, 20($sp)
+        lw $v0, 16($sp)
 
         blt $s7 $zero isho
         
@@ -813,14 +816,45 @@ __start:
         
 ######################################################
 
-lectura:        la $a0, def
+saludin:        la $a0, saludo
+                li $v0, 4
+                syscall
+                
+                li $v0, 8
+                la $a0, arch
+                li $a1, 20
+                syscall
+                
+                move $t0, $zero
+                la $t2, arch
+                la $t3, arch2
+                
+verif:  lb $t1, 0($t2)
+        beqz $t1, ya
+        beq $t1, 0xa, ya
+        sb $t1, 0($t3)
+        addi $t2, $t2, 1
+        addi $t3, $t3, 1
+        addi $t0, $t0, 1
+        b verif
+        
+ya:     beqz $t0, cargaNor
+        la $a0, arch2
+        li $v0, 13
+        li $a1, 0x0
+        syscall
+                
+        move $t0, $v0
+        b lectura
+
+cargaNor:       la $a0, def
                 li $v0, 13
                 li $a1, 0x0
                 syscall
                 
                 move $t0, $v0
                 
-                li $a0, 4
+lectura:        li $a0, 4
                 li $v0, 9
                 syscall
                 
@@ -885,17 +919,18 @@ blah:
         lw $t5 pacman
 	
         lw $s7 life
-
+        
 ########################################################
-        jal main
+fin:    jal main
         nop
+        
+loop:   
+        b loop
 
 # cuando el main hace j $ra entra en el loop infinito,
 # nada mas sale de ahi si se encuentra con una interrupcion
-loop:   
-        b loop
         
-fin:    li $v0 10
+        li $v0 10
         syscall                 # syscall 10 (exit)
 
 #################################################
