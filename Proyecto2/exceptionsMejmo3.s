@@ -4,12 +4,16 @@ s2:     .word 0
 buf:    .space 1
 tab:    .word 0
 ant:    .space 1
-def:    .asciiz "pac.txt"
+saludo: .asciiz "Bienvenido a PACMAN :D \nindique el nombre del archivo de
+tableros: \n(si deja el espacio en blanco se cargara el archivo por default)\n"
+def:    .asciiz "pac2.txt"
 exp:    .asciiz " :live          score: "
 new_line:       .asciiz "\n\n\n\n"
-ln:	.asciiz " \n"
+ln:     .asciiz " \n"
 direccion:      .word 0
 direccionF:     .word 1
+direccionF2:    .word 1
+direccionF3:    .word 1
 tamano: .word 19
 up:     .word 119 #w
 down:   .word 115 #s
@@ -17,18 +21,24 @@ left:   .word 107 #k
 right:  .word 108 #l
 ra:     .word 0
 dummy:  .asciiz "a "
+dummyB: .asciiz "a "
+dummyP: .asciiz "a "
+dummyI: .asciiz "a "
 valores:        .word 1,2,4,8
 inicio: .word 0, 0, 0, 0
 seed1:  .word 0x10111001
 seed2:  .word 0x10111001
 pacman: .word 0
-ghost:  .word 0
+Blinky: .word 0
+Pinky:  .word 0
+Inky:   .word 0
 life:   .word 1
-tabAct: .word 0
 tamCol: .word 0
-numEle: .word 0
 numA:   .word 0
 numC:   .word 0
+arch:   .space 20
+arch2:  .space 20
+tabAct: .space 800
 
         
 
@@ -119,7 +129,7 @@ print:  sw $k0, direccion
 display:
 
 
-	
+        
         li $a0, 0xffff0000
         sw $zero, 0($a0)
                 
@@ -148,33 +158,90 @@ display:
         addi $fp, $sp, 16
         
 ##########################################################
+#
+# Mover a los fantasmas, Blinky, Pinky e Inky
+#
 
-        lw $a1, ghost	
-	la $a0, direccionF
-        la $a2, tabAct
-        lw $a3, tamCol
-        
-        addi $sp, $sp, -20
-        sw $t1, 4($sp)
-        sw $t0, 8($sp)
-        sw $t5 12($sp)
-        sw $v0 16($sp)
-        sw $s5 20($sp)
-        addi $fp $sp -20
-        
-        jal moverf
-        
-        lw $t1 4($sp)
-        lw $t0 8($sp)
-        lw $t5 12($sp)
-        move $s5 $v0
-	
-	sw $v0 ghost
-	
-        lw $v0 16($sp)
-        addi $sp $sp 20
-        addi $fp $sp 20
-x`        
+# Blinky
+         la $a0, direccionF
+         lw $a1, Blinky
+         la $a2, tabAct
+         lw $a3, tamCol
+         lw $v0, Blinky
+         
+         addi $sp, $sp, -20
+         sw $t1, 4($sp)
+         sw $t0, 8($sp)
+         sw $t5 12($sp)
+         sw $v0 16($sp)
+         sw $s5 20($sp)
+         addi $fp $sp -20
+         
+         jal moverf
+         
+         lw $t1 4($sp)
+         lw $t0 8($sp)
+         lw $t5 12($sp)
+         move $s5 $v0
+         sw $v0 Blinky
+         lw $v0 16($sp)
+         addi $sp $sp 16
+         addi $fp $sp 16
+
+#Pinky
+       
+          la $a0, direccionF2
+          lw $a1, Pinky
+          la $a2, tabAct
+          lw $a3, tamCol
+          lw $v0, Pinky
+          
+          addi $sp, $sp, -20
+          sw $t1, 4($sp)
+          sw $t0, 8($sp)
+          sw $t5 12($sp)
+          sw $v0 16($sp)
+          sw $s5 20($sp)
+          addi $fp $sp -20
+          
+          jal moverf
+          
+          lw $t1 4($sp)
+          lw $t0 8($sp)
+          lw $t5 12($sp)
+          move $s5 $v0
+          sw $v0 Pinky
+          lw $v0 16($sp)
+          addi $sp $sp 16
+          addi $fp $sp 16
+         
+# Inky
+         
+          la $a0, direccionF3
+          lw $a1, Inky
+          la $a2, tabAct
+          lw $a3, tamCol
+          lw $v0, Inky
+          
+          addi $sp, $sp, -20
+          sw $t1, 4($sp)
+          sw $t0, 8($sp)
+          sw $t5 12($sp)
+          sw $v0 16($sp)
+          sw $s5 20($sp)
+          addi $fp $sp -20
+          
+          jal moverf
+          
+          lw $t1 4($sp)
+          lw $t0 8($sp)
+          lw $t5 12($sp)
+          move $s5 $v0
+          sw $v0 Inky
+          lw $v0 16($sp)
+          addi $sp $sp 16
+          addi $fp $sp 16
+       
 #########################################################
 #
 # imprimimos el tablero con 4 lineas
@@ -187,15 +254,15 @@ x`
         li $v0,4
         la $a0, exp
         syscall
-	
+        
         li $v0,1
         move $a0, $s6
         syscall
 
-	li $v0,4
+        li $v0,4
         la $a0, ln
         syscall
-	
+        
         li $v0, 4
         lw $a0, tabAct
         syscall
@@ -295,8 +362,6 @@ arr:
 
         li $t5 0x78     
         beq $t1 $t5 k
-	li $t5 0x58     
-        beq $t1 $t5 k
 
         #$
         li $t5 0x24     
@@ -340,8 +405,6 @@ baj:
 
         li $t5 0x78     
         beq $t1 $t5 k
-	li $t5 0x58     
-        beq $t1 $t5 k
 
         #$
         li $t5 0x24     
@@ -374,8 +437,6 @@ der:
         lb $t1 1($a1)
 
         li $t5 0x78     
-        beq $t1 $t5 k
-	li $t5 0x58     
         beq $t1 $t5 k
         #$
         li $t5 0x24     
@@ -411,8 +472,6 @@ izq:
         lb $t1 -1($a1)
 
         li $t5 0x78     
-        beq $t1 $t5 k
-	li $t5 0x58     
         beq $t1 $t5 k
         #$
         li $t5 0x24     
@@ -475,18 +534,20 @@ moverf:
         beq $t5, $t0, arrf
 
 arrf:
-	
         nor $a3 $a3 $a3
         addi $a3 $a3 1
-
-	
+        
         add $t3 $a1 $a3
-	
+        
         lb $t1 0($t3)
-		
+
+        li $t5 0x24     
+        beq $t1 $t5 kfx
+        
         li $t5 0x78     
         beq $t1 $t5 kfx
-	li $t5 0x58     
+        
+        li $t5 0x58     
         beq $t1 $t5 kfx
 
         #Pacman
@@ -508,12 +569,12 @@ npa:    lw $t1 pacman
 pa:     
         lb $t6 0($t2)
         li $t0 0x24
-
+        
         sb $t1 0($t2)
         sb $t0 0($t3)
         sb $t6 0($a1)   
 
-        move $v0 $t3
+        move $v0 $t3 
 
         b kf
         
@@ -522,9 +583,13 @@ bajf:
         
         lb $t1 0($t3)
 
+        li $t5 0x24     
+        beq $t1 $t5 kfx
+        
         li $t5 0x78     
         beq $t1 $t5 kfx
-	li $t5 0x58     
+        
+        li $t5 0x58     
         beq $t1 $t5 kfx
 
         #Pacman
@@ -559,9 +624,13 @@ derf:
         lb $t6 0($t2)
         lb $t1 1($a1)
 
+        li $t5 0x24     
+        beq $t1 $t5 kfx
+        
         li $t5 0x78     
         beq $t1 $t5 kfx
-	li $t5 0x58     
+        
+        li $t5 0x58     
         beq $t1 $t5 kfx
 
         #Pacman
@@ -595,11 +664,15 @@ izqf:
         lb $t6 0($t2)
         lb $t1 -1($a1)
 
+        li $t5 0x24     
+        beq $t1 $t5 kfx
+        
         li $t5 0x78     
         beq $t1 $t5 kfx
-	li $t5 0x58     
+        
+        li $t5 0x58     
         beq $t1 $t5 kfx
-
+        
         #Pacman
         li $t5 0x56
         beq $t1 $t5 npi
@@ -656,7 +729,7 @@ kfx:
         
         sw $v0 0($a0)
         
-        lw $v0, 20($sp)
+        lw $v0, 16($sp)
 
         blt $s7 $zero isho
         
@@ -745,56 +818,51 @@ __start:
         
 ######################################################
 
-lectura:        la $a0, def
+saludin:        la $a0, saludo
+                li $v0, 4
+                syscall
+                
+                li $v0, 8
+                la $a0, arch
+                li $a1, 20
+                syscall
+                
+                move $t0, $zero
+                la $t2, arch
+                la $t3, arch2
+                
+verif:  lb $t1, 0($t2)
+        beqz $t1, ya
+        beq $t1, 0xa, ya
+        sb $t1, 0($t3)
+        addi $t2, $t2, 1
+        addi $t3, $t3, 1
+        addi $t0, $t0, 1
+        b verif
+        
+ya:     beqz $t0, cargaNor
+        la $a0, arch2
+        li $v0, 13
+        li $a1, 0x0
+        syscall
+                
+        move $t0, $v0
+        b lectura
+
+cargaNor:       la $a0, def
                 li $v0, 13
                 li $a1, 0x0
                 syscall
                 
                 move $t0, $v0
                 
-                li $a0, 4
-                li $v0, 9
-                syscall
+                move $a0, $v0
+                la $a1, tabAct
                 
-                sw $v0, tab
-                lw $t3, tab
-                move $t4, $zero
-                move $t5, $zero
+                jal obtTab
                 
-leer:   move $a0, $t0
-        la $a1, buf
-        li $a2, 1
-        li $v0, 14
-        syscall
-        
-        blez $v0, blah
-        
-        la $a0, buf
-        beq $a0, 0xa, leer
-        li $v0, 4
-        syscall
-        
-        lb $t2, 0($a0)
-        #beq $t2, 0xa, leer
-        beq $t2, 0xd, leer
-        sb $t2, 0($t3)
-        addi $t3, $t3, 1
-        addi $t4, $t4, 1
-        beq $t4, 4, masEsp
-        
-        b leer
-        
-masEsp: li $v0, 9
-        li $a0, 4
-        syscall
-        
-        move $t4, $zero
-        move $t3, $v0
-        
-        b leer
-blah:  
-        jal buscarTab
-        
+                move $t0, $v0
+
 ########################################
         
         # Esto habilita las interrupciones por teclado
@@ -814,25 +882,21 @@ blah:
         mtc0 $zero, $9
        
        # Me carga la posicion del pacman al apuntador $t5
+        lw $t5 pacman
         
-	lw $t5 pacman
-
-#	lb $a0 0($t5)
-#	li $v0 11
-#	syscall
-	
         lw $s7 life
-
+        
 ########################################################
-        jal main
+fin:    jal main
         nop
+        
+loop:   
+        b loop
 
 # cuando el main hace j $ra entra en el loop infinito,
 # nada mas sale de ahi si se encuentra con una interrupcion
-loop:   
-        b loop
         
-fin:    li $v0 10
+        li $v0 10
         syscall                 # syscall 10 (exit)
 
 #################################################
@@ -842,126 +906,138 @@ fin:    li $v0 10
 #
 
 
-buscarTab:      li $a0, 4
-                li $v0, 9
-                syscall
-                
-                sw $v0, tabAct
-                lw $t3, tabAct
-                lw $s1, tab
-                move $s2, $zero         #contador
-                move $t5, $zero        #pacman
-                move $s5, $zero         #fantasma
-                move $s6, $zero         #contador para posicion
-                move $s7, $zero         #contador de tamaño
-                move $t2, $zero         #anterior
-                
-                li $t4, 0xa
-                sb $t4, 0($t3)
-                addi $t3, $t3, 1
-                addi $s7, $s7, 1
-                addi $s2, $s2, 1
-                
-busqueda:       lb $t4, 0($s1)
-                beq $t4, 0xa, saltoLin
-                beq $t4, 0x61, sumA
-                beq $t4, 0x2a, sumC
-                beq $t4, 0x3c, pacm
-                beq $t4, 0x24, fant
-                sb $t4, 0($t3)
-                addi $t3, $t3, 1
-                addi $s1, $s1, 1
-                addi $s7, $s7, 1
-                addi $s2, $s2, 1
-                addi $s6, $s6, 1
-                move $t2, $t4
-                beq $s2, 4, masEsp2
-                
-                b busqueda
-                
-saltoLin:       beq $t4, $t2, finTab
-                sw $s7, tamCol
-                move $a0, $s7
-                li $v0, 1
-                syscall
-                move $s7, $zero
-                sb $t4, 0($t3)
-                addi $t3, $t3, 1
-                addi $s1, $s1, 1
-                addi $s2, $s2, 1
-                addi $s7, $s7, 1
-                addi $s6, $s6, 1
-                move $t2, $t4
-                beq $s2, 4, masEsp2
-                
-                b busqueda
-                
-sumA:           lw $s3, numA
+obtTab:      
+        move $t0, $a0
+        move $t1, $a1
+        
+        move $s1, $zero         #contador
+        move $s2, $zero         #contador para posicion
+        move $s3, $zero         #contador de tamaño 
+        move $s4, $zero         #anterior
+        li $s5, 3               #contador de fantasmas
+        
+        li $t2, 0xa
+        sb $t2, 0($t1)
+        addi $t1, $t1, 1
+        addi $s3, $s3, 1
+        addi $s1, $s1, 1
+        
+        
+leer:   move $a0, $t0
+        la $a1, buf
+        li $a2, 1
+        li $v0, 14
+        syscall
+        
+        blez $v0, fin1
+        
+        la $t3, buf
+        
+        lb $t2, 0($t3)
+        beq $t2, 0xd, leer
+        beq $t2, 0xa, saltoLin
+        beq $t2, 0x61, sumA
+        beq $t2, 0x2a, sumC
+        beq $t2, 0x3c, pacm
+        beq $t2, 0x24, fant
+        sb $t2, 0($t1)
+        addi $t1, $t1, 1
+        addi $s3, $s3, 1
+        addi $s1, $s1, 1
+        addi $s2, $s2, 1
+        move $s4, $t2
+        
+        b leer
+        
+saltoLin:       beq $t2, $s4, finTab
+                sw $s3, tamCol
+                move $s3, $zero
+                sb $t2, 0($t1)
+                addi $t1, $t1, 1
                 addi $s3, $s3, 1
-                sw $s3, numA
-                sb $t4, 0($t3)
-                addi $t3, $t3, 1
                 addi $s1, $s1, 1
                 addi $s2, $s2, 1
-                addi $s6, $s6, 1
-                addi $s7, $s7, 1
-                move $t2, $t4
-                beq $s2, 4, masEsp2
+                move $s4, $t2
+        
+                b leer
                 
-                b busqueda
-                
-sumC:           lw $s3, numC
+sumA:   lw $s6, numA
+        addi $s6, $s6, 1
+        sw $s6, numA
+        sb $t2, 0($t1)
+        addi $t1, $t1, 1
+        addi $s3, $s3, 1
+        addi $s1, $s1, 1
+        addi $s2, $s2, 1
+        move $s4, $t2
+        
+        b leer
+        
+sumC:   lw $s6, numC
+        addi $s6, $s6, 1
+        sw $s6, numC
+        sb $t2, 0($t1)
+        addi $t1, $t1, 1
+        addi $s3, $s3, 1
+        addi $s1, $s1, 1
+        addi $s2, $s2, 1
+        move $s4, $t2
+        
+        b leer
+        
+pacm:   sb $t2, 0($t1)
+        la $s6, 0($t1)
+        sw $s6, pacman
+        addi $t1, $t1, 1
+        addi $s3, $s3, 1
+        addi $s1, $s1, 1
+        addi $s2, $s2, 1
+        move $s4, $t2
+        
+        b leer
+        
+fant:   sb $t2, 0($t1)
+        beq $s5, 3, BlinkyAsig
+        beq $s5, 2, PinkyAsig
+        beq $s5, 1, InkyAsig
+        beqz $s5, leer
+        
+BlinkyAsig:     addi $s5, $s5, -1
+                la $s6, 0($t1)
+                sw $s6, Blinky
+                addi $t1, $t1, 1
                 addi $s3, $s3, 1
-                sw $s3, numC
-                sb $t4, 0($t3)
-                addi $t3, $t3, 1
                 addi $s1, $s1, 1
                 addi $s2, $s2, 1
-                addi $s6, $s6, 1
-                addi $s7, $s7, 1
-                move $t2, $t4
-                beq $s2, 4, masEsp2
+                move $s4, $t2
+        
+                b leer
                 
-                b busqueda
-                
-pacm:           sb $t4, 0($t3)
-                la $s6, 0($t3)
-                sw $s6, pacman
-                addi $t3, $t3, 1
+PinkyAsig:      addi $s5, $s5, -1
+                la $s6, 0($t1)
+                sw $s6, Pinky
+                addi $t1, $t1, 1
+                addi $s3, $s3, 1
                 addi $s1, $s1, 1
                 addi $s2, $s2, 1
-                addi $s6, $s6, 1
-                addi $s7, $s7, 1
-                move $t2, $t4
-                beq $s2, 4, masEsp2
-                
-                b busqueda
-                
-fant:           sb $t4, 0($t3)
-                la $s6, 0($t3)
-                sw $s6, ghost
-                addi $t3, $t3, 1
-                addi $s1, $s1, 1
-                addi $s2, $s2, 1
-                addi $s6, $s6, 1
-                addi $s7, $s7, 1
-                move $t2, $t4
-                beq $s2, 4, masEsp2
-                
-                b busqueda
-                
-masEsp2:        li $v0, 9
-                li $a0, 4
-                syscall
-                
-                move $s2, $zero
-                move $t3, $v0
-                
-                b busqueda
-                
-finTab:         lw $t6, tabAct
-                
+                move $s4, $t2
+        
+                b leer
 
+InkyAsig:       addi $s5, $s5, -1
+                la $s6, 0($t1)
+                sw $s6, Inky
+                addi $t1, $t1, 1
+                addi $s3, $s3, 1
+                addi $s1, $s1, 1
+                addi $s2, $s2, 1
+                move $s4, $t2
+        
+                b leer
+                
+finTab:         move $s6, $zero
+                la $t6, tabAct
+                
 imprimir:       lb $a0, 0($t6)
                 beqz $a0, fin1
                 li $v0, 11
@@ -970,6 +1046,7 @@ imprimir:       lb $a0, 0($t6)
                 b imprimir
                 
 fin1:            jr $ra
+
 
 ###############################################
         .globl __eoth

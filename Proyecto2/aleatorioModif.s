@@ -16,7 +16,7 @@ seed2:       .word   0x 10111001
 	#  Tausworthe
 	#  Tomado de la siguiente fuente: 
 	#  http://www.eweb.unex.es/eweb/fisteor/antonio_astillero/ec/spim/
-        #ENUNCIADO_PRACTICA_SPIM_2006_07.pdf
+        #  ENUNCIADO_PRACTICA_SPIM_2006_07.pdf
 	
 main:
 	la $a0, minicio

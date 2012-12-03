@@ -675,6 +675,30 @@ noAdivino:      la $a0, jugad           #imprimimos "Jugador: "
                 la $a0, punN            #imprimimos la puntuacion
                 li $v0, 4
                 syscall
+                
+                la $a0, linea           #imprimimos una linea en blanco
+                li $v0, 4       
+                syscall
+                
+                la $t8, codAct          #cargamos en t8 la direccion de codAct
+                
+                #Imprimimos el codigo con el que se estaba jugando
+                
+                lb $a0, 0($t8)          #imprimimos primer byte de codAct
+                li $v0, 11
+                syscall
+                
+                lb $a0, 1($t8)          #imprimimos segundo byte de codAct
+                li $v0, 11
+                syscall
+                
+                lb $a0, 2($t8)          #imprimimos tercer byte de codAct
+                li $v0, 11
+                syscall
+                
+                lb $a0, 3($t8)          #imprimimos cuarto byte de codAct
+                li $v0, 11
+                syscall
 
 		la $a0, linea
 		li $v0, 4

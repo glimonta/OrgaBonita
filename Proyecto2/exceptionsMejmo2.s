@@ -21,6 +21,9 @@ left:   .word 107 #k
 right:  .word 108 #l
 ra:     .word 0
 dummy:  .asciiz "a "
+dummyB: .asciiz "a "
+dummyP: .asciiz "a "
+dummyI: .asciiz "a "
 valores:        .word 1,2,4,8
 inicio: .word 0, 0, 0, 0
 seed1:  .word 0x10111001
