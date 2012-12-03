@@ -8,6 +8,7 @@ saludo: .asciiz "Bienvenido a PACMAN :D \nindique el nombre del archivo de
 tableros: \n(si deja el espacio en blanco se cargara el archivo por default)\n"
 def:    .asciiz "pac2.txt"
 exp:    .asciiz " :live          score: "
+gameO:  .asciiz "GAME OVER! :( \n SCORE: "
 new_line:       .asciiz "\n\n\n\n"
 ln:     .asciiz " \n"
 direccion:      .word 0
@@ -264,7 +265,7 @@ display:
         syscall
         
         li $v0, 4
-        lw $a0, tabAct
+        la $a0, tabAct
         syscall
         
         li $v0, 4
@@ -375,9 +376,17 @@ arr:
         beq $t1 $t5 unPa
         # *
         addi $s6 $s6 100
+        lw $s0, numC
+        addi $s0, $s0, -1
+        sw $s0, numC
         b sinPa
         
 unPa:   addi $s6 $s6 1
+        lw $s0, numA
+        addi $s0, $s0, -1
+        sw $s0, numA
+
+
 sinPa:  li $t0 0x56
         li $t6 0x6F
 
@@ -762,7 +771,7 @@ ciclo2:
                           # veces para producir un número 
                           # peudo-aleatorio
         div $t6, $t8      
-        mfhi $t9                  # se obtiene el modulo para reducir la
+        mfhi $t9          # se obtiene el modulo para reducir la
                           # cantidad de valores aletaorios a generar
         abs $t9, $t9      # se calcula el valor absoluto para 
                           # solo generar valores positivos
@@ -861,7 +870,7 @@ cargaNor:       la $a0, def
                 
                 jal obtTab
                 
-                move $t0, $v0
+                move $t2, $v0
 
 ########################################
         
@@ -886,12 +895,44 @@ cargaNor:       la $a0, def
         
         lw $s7 life
         
+loop:   lw $t1, numA
+        beqz $t1, sinA
+        b loop
+        
+sinA:   lw $t1, numC
+        beqz $t1, numC
+        
+        bgtz $t2, nuevoTab
+        
+        la $a0, gameO
+        li $v0, 4
+        syscall
+        
+        li $v0, 1
+        move $a0, $s6
+        syscall
+        
+        la $a0, new_line
+        li $v0, 4
+        syscall
+        
+        b fin
+        
+nuevoTab:       
+                move $a0, $t2
+                la $a1, tabAct
+                
+                jal obtTab
+                
+                move $t2, $v0
+                move $s6, $zero
+                
+                b loop
+        
+        
 ########################################################
 fin:    jal main
         nop
-        
-loop:   
-        b loop
 
 # cuando el main hace j $ra entra en el loop infinito,
 # nada mas sale de ahi si se encuentra con una interrupcion
@@ -1045,7 +1086,7 @@ imprimir:       lb $a0, 0($t6)
                 addi $t6, $t6, 1
                 b imprimir
                 
-fin1:            jr $ra
+fin1:           jr $ra
 
 
 ###############################################
