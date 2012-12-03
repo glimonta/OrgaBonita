@@ -186,8 +186,8 @@ display:
          move $s5 $v0
          sw $v0 Blinky
          lw $v0 16($sp)
-         addi $sp $sp 16
-         addi $fp $sp 16
+         addi $sp $sp 20
+         addi $fp $sp 20
 
 #Pinky
        
@@ -213,8 +213,8 @@ display:
           move $s5 $v0
           sw $v0 Pinky
           lw $v0 16($sp)
-          addi $sp $sp 16
-          addi $fp $sp 16
+          addi $sp $sp 20
+          addi $fp $sp 20
          
 # Inky
          
@@ -240,14 +240,16 @@ display:
           move $s5 $v0
           sw $v0 Inky
           lw $v0 16($sp)
-          addi $sp $sp 16
-          addi $fp $sp 16
+          addi $sp $sp 20
+          addi $fp $sp 20
        
 #########################################################
 #
 # imprimimos el tablero con 4 lineas
 #
 
+	
+	
         li $v0,1
         move $a0, $s7
         syscall
@@ -270,6 +272,10 @@ display:
         
         li $v0, 4
         la $a0, new_line
+        syscall
+
+	lw $a0 numA
+	li $v0, 1
         syscall
         
         lb $t0, 0($t5)
@@ -305,7 +311,12 @@ end:    lw $v0 s1               # Restore other registers
         mfc0 $k0 $12            # Set Status register
         ori  $k0 0x1            # Interrupts enabled
         mtc0 $k0 $12
-        
+
+	mfc0 $k0 $14		# Bump EPC register
+	addiu $k0 $k0 -4		# Skip faulting instruction
+				# (Need to handle delayed branch case here)
+	mtc0 $k0 $14
+	
         eret
         
 #####################################################
@@ -505,7 +516,7 @@ sinPi:
         li $t0 0x6F
         sb $t0 0($a1)
         
-k:      li $a0 0
+k:	li $a0 0
         sw $a0 direccion
         j $ra
         
@@ -894,12 +905,17 @@ cargaNor:       la $a0, def
         lw $t5 pacman
         
         lw $s7 life
+
+	nop
+loop:	lw $t1, numA
+	bnez $t1, loop
         
-loop:   lw $t1, numA
-        beqz $t1, sinA
-        b loop
-        
-sinA:   lw $t1, numC
+sinA:	
+	lw $a0 numA
+	li $v0, 1
+        syscall
+
+	lw $t1, numC
         beqz $t1, numC
         
         bgtz $t2, nuevoTab
@@ -1080,7 +1096,7 @@ finTab:         move $s6, $zero
                 la $t6, tabAct
                 
 imprimir:       lb $a0, 0($t6)
-                beqz $a0, fin1
+		beqz $a0, fin1
                 li $v0, 11
                 syscall
                 addi $t6, $t6, 1
