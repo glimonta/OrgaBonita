@@ -277,9 +277,6 @@ display:
         la $a0, new_line
         syscall
 
-	lw $a0 numA
-	li $v0, 1
-        syscall
         
         lb $t0, 0($t5)
         li $a0, 0x6f
@@ -444,6 +441,9 @@ baj:
         b sinPb
         
 unPb:   addi $s6 $s6 1
+	lw $s0, numA
+        addi $s0, $s0, -1
+        sw $s0, numA
 sinPb:
         li $t0 0x5E
         sb $t0 0($t3)
@@ -476,6 +476,9 @@ der:
         b sinPd
         
 unPd:   addi $s6 $s6 1
+	lw $s0, numA
+        addi $s0, $s0, -1
+        sw $s0, numA
 sinPd:
         
         li $t0 0x3C
@@ -511,6 +514,9 @@ izq:
         b sinPi
         
 unPi:   addi $s6 $s6 1
+	lw $s0, numA
+        addi $s0, $s0, -1
+        sw $s0, numA
 sinPi:
 
         li $t0 0x3E
